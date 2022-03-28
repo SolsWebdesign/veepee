@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="veepee_operations" resource="default" engine="innodb" comment="VeePee Operations">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Entity Id"/>
+        <column xsi:type="varchar" name="code" nullable="true" length="65" comment="VeePee code"/>
+        <column xsi:type="varchar" name="status" nullable="true" length="35" comment="VeePee status"/>
+        <column xsi:type="varchar" name="mode" nullable="true" length="35" comment="VeePee mode"/>
+        <column xsi:type="timestamp" name="start_date" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="start date"/>
+        <column xsi:type="timestamp" name="end_date" on_update="false" nullable="true"
+                comment="end date"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+    <table name="veepee_batches" resource="default" engine="innodb" comment="VeePee Batches">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Entity Id"/>
+        <column xsi:type="int" name="operation_id" padding="10" unsigned="true" nullable="false"
+                comment="Operation Id"/>
+        <column xsi:type="int" name="batch_id" padding="10" unsigned="true" nullable="false"
+                comment="VeePee Batch Id"/>
+        <column xsi:type="varchar" name="status" nullable="true" length="35" comment="Status"/>
+        <column xsi:type="timestamp" name="creation_date" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="creation date"/>
+        <column xsi:type="timestamp" name="end_date" on_update="false" nullable="true"
+                comment="end date"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+    <table name="veepee_delivery_orders" resource="default" engine="innodb" comment="VeePee Delivery Orders">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Entity Id"/>
+        <column xsi:type="int" name="batch_id" padding="10" unsigned="true" nullable="false"
+                comment="VeePee Batch Id"/>
+        <column xsi:type="int" name="veepee_id" padding="20" unsigned="true" nullable="false"
+                comment="VeePee Id"/>
+        <column xsi:type="int" name="veepee_order_id" padding="20" unsigned="true" nullable="false"
+                comment="VeePee Order Id"/>
+        <column xsi:type="int" name="magento_order_id" padding="10" unsigned="true" nullable="false"
+                comment="Magento Order Id"/>
+        <column xsi:type="varchar" name="magento_comment" nullable="true" length="255" comment="Magento comment"/>
+        <column xsi:type="varchar" name="zip_code" nullable="true" length="15" comment="Zip code"/>
+        <column xsi:type="varchar" name="city" nullable="true" length="255" comment="city"/>
+        <column xsi:type="varchar" name="country" nullable="true" length="5" comment="Country code"/>
+        <column xsi:type="varchar" name="carrier_key" nullable="true" length="65" comment="Carrier Key"/>
+        <column xsi:type="smallint" name="status" padding="2" unsigned="true" nullable="true" identity="false"
+                default="0" comment="Status"/>
+        <column xsi:type="smallint" name="is_mono_ref" padding="2" unsigned="true" nullable="true" identity="false"
+                default="0" comment="Is mono ref"/>
+        <column xsi:type="timestamp" name="creation_date" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Creation date"/>
+        <column xsi:type="timestamp" name="logistic_commitment_date" on_update="false" nullable="true"
+                comment="Logistic commitment date"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+    <table name="veepee_delivery_order_items" resource="default" engine="innodb" comment="VeePee Delivery Order Items">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Entity Id"/>
+        <column xsi:type="int" name="veepee_order_id" padding="20" unsigned="true" nullable="false"
+                comment="VeePee Order Id"/>
+        <column xsi:type="varchar" name="supplier_reference" nullable="true" length="65" comment="Supplier reference"/>
+        <column xsi:type="int" name="product_id" padding="20" unsigned="true" nullable="false"
+                comment="Product Id"/>
+        <column xsi:type="varchar" name="veepee_product_name" nullable="true" length="255" comment="VeePee product name"/>
+        <column xsi:type="int" name="qty" padding="10" unsigned="true" nullable="false"
+                comment="Qty Ordered"/>
+        <column xsi:type="int" name="qty_parcelled" padding="10" unsigned="true" nullable="false"
+                comment="Qty Parcelled"/>
+        <column xsi:type="int" name="qty_labeled" padding="10" unsigned="true" nullable="false"
+                comment="Qty Labeled"/>
+        <column xsi:type="int" name="qty_shipped" padding="10" unsigned="true" nullable="false"
+                comment="Qty Shipped"/>
+        <column xsi:type="int" name="qty_stockout" padding="10" unsigned="true" nullable="false"
+                comment="Qty Stockout"/>
+        <column xsi:type="decimal" name="weight" scale="4" precision="20" unsigned="false" nullable="true"
+                comment="Weight"/>
+        <column xsi:type="varchar" name="ean_list" nullable="true" length="65" comment="Ean List"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+    <table name="veepee_token" resource="default" engine="innodb" comment="Veepee token">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Entity Id"/>
+        <column xsi:type="varchar" name="token" nullable="true" length="700" comment="Access token"/>
+        <column xsi:type="int" name="expires_in" padding="10" unsigned="true" nullable="true" identity="false"
+                default="0" comment="Expires in"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+</schema>

@@ -1,0 +1,82 @@
+{
+    "veepee_operations": {
+        "column": {
+            "entity_id": true,
+            "code": true,
+            "status": true,
+            "mode": true,
+            "start_date": true,
+            "end_date": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "veepee_batches": {
+        "column": {
+            "entity_id": true,
+            "operation_id": true,
+            "batch_id": true,
+            "status": true,
+            "creation_date": true,
+            "end_date": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "veepee_delivery_orders": {
+        "column": {
+            "entity_id": true,
+            "batch_id": true,
+            "veepee_order_id": true,
+            "magento_order_id": true,
+            "zip_code": true,
+            "city": true,
+            "country": true,
+            "carrier_key": true,
+            "status": true,
+            "is_mono_ref": true,
+            "creation_date": true,
+            "logistic_commitment_date": true,
+            "updated_at": true,
+            "veepee_id": true,
+            "magento_comment": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "veepee_delivery_order_items": {
+        "column": {
+            "entity_id": true,
+            "veepee_order_id": true,
+            "supplier_reference": true,
+            "product_id": true,
+            "qty": true,
+            "qty_parcelled": true,
+            "qty_labeled": true,
+            "qty_shipped": true,
+            "weight": true,
+            "ean_list": true,
+            "updated_at": true,
+            "veepee_product_name": true,
+            "qty_stockout": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "veepee_token": {
+        "column": {
+            "entity_id": true,
+            "token": true,
+            "expires_in": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}

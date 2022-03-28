@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="veepee_tab" translate="label" sortOrder="100">
+            <label>VeePee</label>
+        </tab>
+        <section id="veepee" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>VeePee Connector</label>
+            <tab>veepee_tab</tab>
+            <resource>SolsWebdesign_VeePee::configuration</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>General</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="veepee_api_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Base VeePee API url</label>
+                    <comment><![CDATA[E.g. https://dropshipment-sandbox.supply.veepee.tech <br />no trailing slash!]]></comment>
+                </field>
+                <field id="username" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Username</label>
+                </field>
+                <field id="password" translate="label" type="password" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Password</label>
+                    <comment><![CDATA[Password should not contain slashes, trailing slashes, quotes or double quotes.]]></comment>
+                </field>
+            </group>
+            <group id="various" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Various settings</label>
+                <field id="auto_process_orders" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Auto process VeePee orders</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>
+                        <![CDATA[
+                            if yes, incoming VeePee orders are processed straight away (e.g. assigned products and set to paid).
+                        ]]>
+                    </comment>
+                </field>
+                <field id="auto_process_orders_max" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Max number of VeePee orders to process per cron run</label>
+                    <validate>validate-number maximum-length-5</validate>
+                    <comment>
+                        <![CDATA[
+                            Nr of orders to push per cron run. A number between 0 and 90000 e.g. 100.
+                        ]]>
+                    </comment>
+                </field>
+                <field id="auto_invoice_orders" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Auto invoice VeePee orders</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>
+                        <![CDATA[
+                            if yes, VeePee orders are also invoiced straight away
+                        ]]>
+                    </comment>
+                </field>
+                <field id="cron_collect_veepee_orders" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Cron to collect VeePee orders</label>
+                    <comment>
+                        <![CDATA[
+                            5 6,9,15 * * * means 5 minutes past 6 and 9 o'clock in the morning and 5 past 3 o'clock in the afternoon. Explanation: https://crontab.guru/ <br />
+                            up to 3 times a day orders are available from VeePee
+                        ]]>
+                    </comment>
+                </field>
+                <field id="cron_collect_veepee_campaigns" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Cron to collect VeePee Campaigns</label>
+                    <comment>
+                        <![CDATA[
+                            2 6 * * * means 2 minutes past 6 o'clock in the morning. Explanation: https://crontab.guru/ <br />
+                            once a day is advised
+                        ]]>
+                    </comment>
+                </field>
+                <field id="cron_push_veepee_orders" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Cron to push VeePee orders if products are available</label>
+                    <comment>
+                        <![CDATA[
+                            */5 * * * * means every 5 minutes. Explanation: https://crontab.guru/ <br />
+                            <strong>Note: orders are only pushed if "Auto process VeePee orders" is set to yes!</strong>
+                        ]]>
+                    </comment>
+                </field>
+            </group>
+            <group id="developer" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Developer</label>
+                <field id="enable_logging" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable logging</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[If enabled, extra logging is added to the monthly veepee_connector_monthnumber.logs]]></comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

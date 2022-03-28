@@ -1,0 +1,26 @@
+{
+  "name": "solswebdesign/veepee",
+  "description": "VeePee M2 Connection",
+  "type": "magento2-module",
+  "authors" : [
+    {
+      "name": "Isolde van Oosterhout",
+      "email": "sols@solswebdesign.nl"
+    }
+  ],
+  "require": {
+    "php": ">=7.3",
+    "magento/framework": "^100.1|^101.0|^102.0|^103.0",
+    "magento/module-backend": "*",
+  },
+  "license": [
+    "OSL-3.0",
+    "AFL-3.0"
+  ],
+  "autoload": {
+    "files": [ "registration.php" ],
+    "psr-4": {
+      "SolsWebdesign\\VeePee\\": ""
+    }
+  }
+}

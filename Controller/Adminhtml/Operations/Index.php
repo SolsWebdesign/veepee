@@ -1,0 +1,26 @@
+<?php
+/**
+ * Product : VeePee M2 Connection
+ *
+ * @copyright Copyright © 2022 VeePee M2 Connection. All rights reserved.
+ * @author    Isolde van Oosterhout
+ */
+namespace SolsWebdesign\VeePee\Controller\Adminhtml\Operations;
+
+use Magento\Framework\Controller\ResultFactory;
+
+class Index extends \Magento\Backend\App\Action
+{
+    public function execute()
+    {
+        $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
+        $resultPage->getConfig()->getTitle()->prepend((__('VeePee - Campaigns')));
+
+        return $resultPage;
+    }
+
+    protected function _isAllowed()
+    {
+        return $this->_authorization->isAllowed('SolsWebdesign_VeePee::operations');
+    }
+}

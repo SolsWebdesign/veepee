@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">veepee_orders_grid.veepee_orders_grid_data_source</item>
+            <item name="deps" xsi:type="string">veepee_orders_grid.veepee_orders_grid_data_source</item>
+        </item>
+        <item name="spinner" xsi:type="string">veepee_orders_columns</item>
+    </argument>
+    <dataSource name="veepee_orders_grid_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider</argument>
+            <argument name="name" xsi:type="string">veepee_orders_grid_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">entity_id</argument>
+            <argument name="requestFieldName" xsi:type="string">entity_id</argument>
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="update_url" xsi:type="url" path="mui/index/render"/>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
+                </item>
+            </argument>
+        </argument>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="veepee_orders_columns">
+        <selectionsColumn name="ids">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="indexField" xsi:type="string">entity_id</item>
+                </item>
+            </argument>
+        </selectionsColumn>
+        <column name="entity_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">false</item>
+                    <item name="sorting" xsi:type="string">desc</item>
+                    <item name="sortable" xsi:type="string">true</item>
+                    <item name="label" xsi:type="string" translate="true">ID</item>
+                </item>
+            </argument>
+        </column>
+        <column name="veepee_order_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">false</item>
+                    <item name="sorting" xsi:type="string">desc</item>
+                    <item name="sortable" xsi:type="string">true</item>
+                    <item name="label" xsi:type="string" translate="true">VeePee Order ID</item>
+                </item>
+            </argument>
+        </column>
+        <column name="magento_order_id" sortOrder="10" class="SolsWebdesign\VeePee\Ui\Component\Grid\Column\OrderIncrementId">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Magento Order Id</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        <column name="magento_comment">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">false</item>
+                    <item name="sortable" xsi:type="string">false</item>
+                    <item name="label" xsi:type="string" translate="true">Magento Comment</item>
+                </item>
+            </argument>
+        </column>
+        <column name="products" class="SolsWebdesign\VeePee\Ui\Component\Grid\Column\Products">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="filter" xsi:type="string">false</item>
+                    <item name="label" xsi:type="string" translate="true">Products</item>
+                </item>
+            </argument>
+        </column>
+        <column name="status" class="SolsWebdesign\VeePee\Ui\Component\Grid\Column\VpOrderStatus">
+            <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">SolsWebdesign\VeePee\Model\Config\Source\VpOrderStatus</item>
+                <item name="config" xsi:type="array">
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="filter" xsi:type="string">select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="label" xsi:type="string" translate="true">Vp Order Status</item>
+                </item>
+            </argument>
+        </column>
+        <column name="code" class="SolsWebdesign\VeePee\Ui\Component\Grid\Column\VpCampaignCode">
+            <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">SolsWebdesign\VeePee\Model\Config\Source\VpCampaign</item>
+                <item name="config" xsi:type="array">
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="filter" xsi:type="string">select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="label" xsi:type="string" translate="true">Vp Campaign code</item>
+                </item>
+            </argument>
+        </column>
+        <column name="zip_code">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Postalcode</label>
+            </settings>
+        </column>
+        <column name="city">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">City</label>
+            </settings>
+        </column>
+        <column name="country">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Country code</label>
+            </settings>
+        </column>
+        <column name="creation_date" sortOrder="100">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">dateRange</item>
+                    <item name="label" xsi:type="string" translate="true">Creation date</item>
+                </item>
+            </argument>
+        </column>
+        <column name="logistic_commitment_date" sortOrder="110">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">dateRange</item>
+                    <item name="label" xsi:type="string" translate="true">Commitment date</item>
+                </item>
+            </argument>
+        </column>
+        <column name="updated_at" sortOrder="120">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">dateRange</item>
+                    <item name="label" xsi:type="string" translate="true">Updated At</item>
+                </item>
+            </argument>
+        </column>
+        <actionsColumn name="actions" class="SolsWebdesign\VeePee\Ui\Component\Grid\Column\VpActions">
+            <settings>
+                <indexField>entity_id</indexField>
+            </settings>
+            <!--            <argument name="data" xsi:type="array">-->
+            <!--                <item name="config" xsi:type="array">-->
+            <!--                    <item name="resizeEnabled" xsi:type="boolean">false</item>-->
+            <!--                    <item name="resizeDefaultWidth" xsi:type="string">107</item>-->
+            <!--                    <item name="indexField" xsi:type="string">id</item>-->
+            <!--                    <item name="sortOrder" xsi:type="number">20</item>-->
+            <!--                </item>-->
+            <!--            </argument>-->
+        </actionsColumn>
+    </columns>
+</listing>

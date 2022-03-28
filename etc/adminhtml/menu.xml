@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add
+            id="SolsWebdesign_VeePee::menu"
+            title="VeePee"
+            translate="title"
+            module="SolsWebdesign_VeePee"
+            sortOrder="200"
+            parent="Magento_Sales::sales"
+            resource="SolsWebdesign_VeePee::menu" />
+        <add
+            id="SolsWebdesign_VeePee::campaigns"
+            title="VeePee Campaigns"
+            translate="title"
+            module="SolsWebdesign_VeePee"
+            sortOrder="10"
+            parent="SolsWebdesign_VeePee::menu"
+            action="veepee/operations/index"
+            resource="SolsWebdesign_VeePee::campaigns"/>
+        <add
+            id="SolsWebdesign_VeePee::orders"
+            title="VeePee Orders"
+            translate="title"
+            module="SolsWebdesign_VeePee"
+            sortOrder="10"
+            parent="SolsWebdesign_VeePee::menu"
+            action="veepee/orders/index"
+            resource="SolsWebdesign_VeePee::orders"/>
+        <add
+            id="SolsWebdesign_VeePee::configuration"
+            title="Configuration"
+            translate="title"
+            module="SolsWebdesign_VeePee"
+            sortOrder="100"
+            parent="SolsWebdesign_VeePee::menu"
+            action="adminhtml/system_config/edit/section/veepee"
+            resource="SolsWebdesign_VeePee::configuration"/>
+    </menu>
+</config>

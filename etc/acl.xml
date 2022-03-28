@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="SolsWebdesign_VeePee::configuration" title="VeePee Configuration" translate="title" />
+                        </resource>
+                    </resource>
+                </resource>
+                <resource id="Magento_Sales::sales">
+                    <resource id="SolsWebdesign_VeePee::menu" title="VeePee" translate="title">
+                        <resource id="SolsWebdesign_VeePee::campaigns" title="VeePee Campaigns"  translate="title" />
+                        <resource id="SolsWebdesign_VeePee::orders" title="VeePee Orders"  translate="title" />
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- preferences -->
+    <preference for="SolsWebdesign\VeePee\Api\Data\VeepeeBatchesInterface" type="SolsWebdesign\VeePee\Model\Api\Data\VeepeeBatches"/>
+    <preference for="SolsWebdesign\VeePee\Api\Data\VeepeeOperationsInterface" type="SolsWebdesign\VeePee\Model\Api\Data\VeepeeOperations"/>
+    <preference for="SolsWebdesign\VeePee\Api\Data\VeepeeDeliveryOrdersInterface" type="SolsWebdesign\VeePee\Model\Api\Data\VeepeeDeliveryOrders"/>
+    <preference for="SolsWebdesign\VeePee\Api\Data\VeepeeDeliveryOrderItemsInterface" type="SolsWebdesign\VeePee\Model\Api\Data\VeepeeDeliveryOrderItems"/>
+    <preference for="SolsWebdesign\VeePee\Api\VeepeeBatchesRepositoryInterface" type="SolsWebdesign\VeePee\Model\Api\VeepeeBatchesRepository"/>
+    <preference for="SolsWebdesign\VeePee\Api\VeepeeOperationsRepositoryInterface" type="SolsWebdesign\VeePee\Model\Api\VeepeeOperationsRepository"/>
+    <preference for="SolsWebdesign\VeePee\Api\VeepeeDeliveryOrdersRepositoryInterface" type="SolsWebdesign\VeePee\Model\Api\VeepeeDeliveryOrdersRepository"/>
+    <preference for="SolsWebdesign\VeePee\Api\VeepeeDeliveryOrderItemsRepositoryInterface" type="SolsWebdesign\VeePee\Model\Api\VeepeeDeliveryOrderItemsRepository"/>
+
+    <!-- for grid -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="veepee_operations_grid_data_source" xsi:type="string">SolsWebdesign\VeePee\Model\ResourceModel\VeepeeOperations\Grid\Collection</item>
+                <item name="veepee_orders_grid_data_source" xsi:type="string">SolsWebdesign\VeePee\Model\ResourceModel\VeepeeDeliveryOrders\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- cli -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="getVeepeeToken" xsi:type="object">SolsWebdesign\VeePee\Console\Command\GetVeepeeToken</item>
+                <item name="collectVeepeeOperations" xsi:type="object">SolsWebdesign\VeePee\Console\Command\CollectVeepeeOperations</item>
+                <item name="collectVeepeeBatches" xsi:type="object">SolsWebdesign\VeePee\Console\Command\CollectVeepeeBatches</item>
+                <item name="collectVeepeeDeliveryOrders" xsi:type="object">SolsWebdesign\VeePee\Console\Command\CollectVeepeeDeliveryOrders</item>
+                <!-- below always creates area code not set error -->
+                <!--item name="pushVeepeeDeliveryOrder" xsi:type="object">SolsWebdesign\VeePee\Console\Command\PushVeepeeDeliveryOrder</item -->
+            </argument>
+        </arguments>
+    </type>
+</config>
