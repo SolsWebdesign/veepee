@@ -42,7 +42,19 @@
             "logistic_commitment_date": true,
             "updated_at": true,
             "veepee_id": true,
-            "magento_comment": true
+            "magento_comment": true,
+            "firstname": true,
+            "lastname": true,
+            "company_name": true,
+            "address_1": true,
+            "address_2": true,
+            "address_3": true,
+            "pickup_point": true,
+            "digicode": true,
+            "floor": true,
+            "state": true,
+            "phone": true,
+            "email": true
         },
         "constraint": {
             "PRIMARY": true

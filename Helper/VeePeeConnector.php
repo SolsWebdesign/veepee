@@ -85,9 +85,9 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->devLog->info(print_r($accessInfo, true));
             }
             if(trim($username) == trim($accessInfo['username'])) {
-                $token = $this->getToken();
+                $token = $this->getToken(true);
                 if(strlen($token) > 10) {
-                    return 'retrieved token';
+                    return 'retrieved token, continue';
                 } else {
                     return 'error occurred, please check logs';
                 }
@@ -145,7 +145,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
     {
         if ($this->config->isEnabled()) {
             if(isset($this->veepeeApiUrl) && strlen($this->veepeeApiUrl) > 5) {
-                $loginUrl = $this->veepeeApiUrl . '/api/v2/auth/login';
+                $loginUrl = $this->veepeeApiUrl . '/api/v3/auth/login';
                 $accessInfo = $this->config->getVeePeeApiCredentials();
                 if ($this->devLogging) {
                     $this->devLog->info(print_r('Veepee login URL ' . $loginUrl, true));
@@ -158,7 +158,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 // below does not work due to password containing slashes, trailing slashes, single quotes and double quotes
                 // demand a password without any slashes or quotes because this is not the way forward
                 $jsonEncoded = json_encode($authenticationData);
-                $this->devLog->info(print_r($jsonEncoded, true));
+                //$this->devLog->info(print_r($jsonEncoded, true));
                 $this->_curl->addHeader("Content-Type", "application/json-patch+json"); //x-www-form-urlencoded
 
                 $this->_curl->setOption(CURLOPT_POST, 1);
@@ -217,10 +217,10 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
             $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
             $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER , false);
-            $this->getToken($returnIt = false);
+            $this->getToken(false);
             $tokenBearer =  "Bearer " . $this->token;
-            $this->devLog->info(print_r($tokenBearer, true));
-            $operationsUrl = $this->veepeeApiUrl . '/api/v2/operations';
+            //$this->devLog->info(print_r($tokenBearer, true));
+            $operationsUrl = $this->veepeeApiUrl . '/api/v3/operations';
             $this->_curl->addHeader("Authorization", $tokenBearer);
             $this->_curl->get($operationsUrl);
             $response = $this->_curl->getBody();
@@ -243,8 +243,13 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                             if(isset($responseItem['status']) && strlen($responseItem['status']) > 0) {
                                 $operation->setStatus($responseItem['status']);
                             }
-                            if(isset($responseItem['mode']) && strlen($responseItem['mode']) > 0) {
-                                $operation->setMode($responseItem['mode']);
+                            if(isset($responseItem['modes']) && strlen($responseItem['modes']) > 0) {
+                                if (is_array($responseItem['modes']) && count($responseItem['modes']) > 0) {
+                                    $modes = implode(',', $responseItem['modes']);
+                                    $operation->setMode($modes);
+                                } elseif (is_string($responseItem['modes'])){
+                                    $operation->setMode($responseItem['modes']);
+                                }
                             }
                             if(isset($responseItem['beginDate']) && strlen($responseItem['beginDate']) > 0) {
                                 $operation->setStartDate($responseItem['beginDate']);
@@ -261,11 +266,18 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                 $this->logger->critical('Error (getOperations) could not save operation '.$exception->getMessage());
                             }
                         } else {
+                            if (is_array($responseItem['modes']) && count($responseItem['modes']) > 0) {
+                                $modes = implode(',', $responseItem['modes']);
+                            } elseif (is_string($responseItem['modes'])){
+                                $modes = $responseItem['modes'];
+                            } else {
+                                $modes = 'unknown';
+                            }
                             // new operation:
                             $newOperation = $this->veepeeOperationsFactory->create();
                             $newOperation->setCode($responseItem['code'])
                                 ->setStatus($responseItem['status'])
-                                ->setMode($responseItem['mode'])
+                                ->setMode($modes)
                                 ->setStartDate($responseItem['beginDate'])
                                 ->setEndDate($responseItem['endDate']);
                             try {
@@ -298,8 +310,8 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
                 $this->getToken($returnIt = false);
                 $tokenBearer = "Bearer " . $this->token;
-                $this->devLog->info(print_r($tokenBearer, true));
-                $batchesUrl = $this->veepeeApiUrl . '/api/v2/operations/' . $code . '/batches';
+                //$this->devLog->info(print_r($tokenBearer, true));
+                $batchesUrl = $this->veepeeApiUrl . '/api/v3/operations/' . $code . '/batches';
                 $this->_curl->addHeader("Authorization", $tokenBearer);
                 $this->_curl->get($batchesUrl);
                 $response = $this->_curl->getBody();
@@ -317,7 +329,6 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                             $this->devLog->info(print_r($responseItem, true));
                         }
                         if (isset($responseItem['id']) && $responseItem['id'] > 0) {
-                            $this->devLog->info(print_r('dit is '.$responseItem['id'], true));
                             $batchesReceived++;
                             try {
                                 $batch = $this->veepeeBatchesRepository->getByBatchId($responseItem['id']);
@@ -326,7 +337,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                 // just catch
                             }
                             if (isset($batch) && ($batchId > 0)) {
-                                $this->devLog->info(print_r('this is batch id '.$batch->getId(), true));
+                                //$this->devLog->info(print_r('this is batch id '.$batch->getId(), true));
                                 // update it
                                 if (isset($batch['status']) && strlen($batch['status']) > 0) {
                                     $batch->setStatus($responseItem['status']);
@@ -347,7 +358,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                 }
                             } else {
                                 // new batch:
-                                $this->devLog->info(print_r('this is a NEW batch! ', true));
+                                //$this->devLog->info(print_r('this is a NEW batch! ', true));
                                 $newBatch = $this->veepeeBatchesFactory->create();
                                 $newBatch->setOperationId($operation->getId())
                                     ->setBatchId($responseItem['id'])
@@ -356,7 +367,9 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                     ->setEndDate($responseItem['endDate']);
                                 try {
                                     $newBatch->save();
-                                    $this->devLog->info(print_r('saved this NEW batch! ', true));
+                                    if ($this->devLogging) {
+                                        $this->devLog->info(print_r('saved this NEW batch! ', true));
+                                    }
                                 } catch (\Exception $exception) {
                                     if ($this->devLogging) {
                                         $this->devLog->info(print_r('Error (getBatches) could not save batch ' . $exception->getMessage(), true));
@@ -406,8 +419,8 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                     $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
                     $this->getToken($returnIt = false);
                     $tokenBearer = "Bearer " . $this->token;
-                    $this->devLog->info(print_r($tokenBearer, true));
-                    $batchesUrl = $this->veepeeApiUrl . '/api/v2/operations/' . $code . '/batches/'.$batchId;
+                    //$this->devLog->info(print_r($tokenBearer, true));
+                    $batchesUrl = $this->veepeeApiUrl . '/api/v3/operations/' . $code . '/batches/'.$batchId;
                     $this->_curl->addHeader("Authorization", $tokenBearer);
                     $this->_curl->get($batchesUrl);
                     $response = $this->_curl->getBody();
@@ -435,7 +448,9 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                     }
                                     if (isset($vpOrder) && ($vpOrderId > 0)) {
                                         // update
-                                        $this->devLog->info(print_r('this is vp order id '.$vpOrderId, true));
+                                        if ($this->devLogging) {
+                                            $this->devLog->info(print_r('this is vp order id ' . $vpOrderId, true));
+                                        }
                                         // update it
                                         $status = array_search(trim($responseItem['status']), $vpDeliveryOrderStatuses);
                                         if($status === false) {
@@ -462,10 +477,77 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                         }
                                         // get logistic commitment date  from first delivery order item:
                                         if(isset($responseItem['logisticCommitmentDate']) && strlen($responseItem['logisticCommitmentDate']) > 0) {
-                                            $this->devLog->info(print_r('Veepee (getDeliveryOrdersForBatch) logistic commitment date '.$responseItem['logisticCommitmentDate'], true));
+                                            if ($this->devLogging) {
+                                                $this->devLog->info(print_r('Veepee (getDeliveryOrdersForBatch) logistic commitment date ' . $responseItem['logisticCommitmentDate'], true));
+                                            }
                                             $vpOrder->setLogisticCommitmentDate($responseItem['logisticCommitmentDate']);
                                         } else {
-                                            $this->devLog->info(print_r('Veepee (getDeliveryOrdersForBatch) logistic commitment date NOT SET', true));
+                                            if ($this->devLogging) {
+                                                $this->devLog->info(print_r('Veepee (getDeliveryOrdersForBatch) logistic commitment date NOT SET', true));
+                                            }
+                                        }
+                                        // get shipping address from delivery order item:
+                                        if(isset($responseItem['shippingAddress'])) {
+                                            // shipping address stuff:
+                                            if ($this->devLogging) {
+                                                $this->devLog->info(print_r('Veepee shipping address '.count($responseItem['shippingAddress']), true));
+                                                if(count($responseItem['shippingAddress']) > 3) {
+                                                    $this->devLog->info(print_r('Veepee shipping address with more then 3 items!', true));
+                                                    $this->devLog->info(print_r($responseItem['shippingAddress'], true));
+                                                }
+                                            }
+                                            if(isset($responseItem['shippingAddress']['country']) && strlen($responseItem['shippingAddress']['country']) > 0) {
+                                                $vpOrder->setCountry($responseItem['shippingAddress']['country']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['city']) && strlen($responseItem['shippingAddress']['city']) > 0) {
+                                                $vpOrder->setCity($responseItem['shippingAddress']['city']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['zipCode']) && strlen($responseItem['shippingAddress']['zipCode']) > 0) {
+                                                $vpOrder->setZipCode($responseItem['shippingAddress']['zipCode']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['firstname']) && strlen($responseItem['shippingAddress']['firstname']) > 0) {
+                                                $vpOrder->setFirstname($responseItem['shippingAddress']['firstname']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['lastname']) && strlen($responseItem['shippingAddress']['lastname']) > 0) {
+                                                $vpOrder->setLastname($responseItem['shippingAddress']['lastname']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['companyName']) && strlen($responseItem['shippingAddress']['companyName']) > 0) {
+                                                $vpOrder->setCompanyName($responseItem['shippingAddress']['companyName']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['digicode']) && strlen($responseItem['shippingAddress']['digicode']) > 0) {
+                                                $vpOrder->setDigicode($responseItem['shippingAddress']['digicode']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['floor'])) {
+                                                $vpOrder->setFloor($responseItem['shippingAddress']['floor']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['pickupPoint']) && strlen($responseItem['shippingAddress']['pickupPoint']) > 0) {
+                                                $vpOrder->setPickupPoint($responseItem['shippingAddress']['pickupPoint']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['address1']) && strlen($responseItem['shippingAddress']['address1']) > 0) {
+                                                $vpOrder->setAddress1($responseItem['shippingAddress']['address1']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['address2']) && strlen($responseItem['shippingAddress']['address2']) > 0) {
+                                                $vpOrder->setAddress2($responseItem['shippingAddress']['address2']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['address3']) && strlen($responseItem['shippingAddress']['address3']) > 0) {
+                                                $vpOrder->setAddress3($responseItem['shippingAddress']['address3']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['state']) && strlen($responseItem['shippingAddress']['state']) > 0) {
+                                                $vpOrder->setState($responseItem['shippingAddress']['state']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['phone']) && strlen($responseItem['shippingAddress']['phone']) > 0) {
+                                                $vpOrder->setPhone($responseItem['shippingAddress']['phone']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['phone']) && strlen($responseItem['shippingAddress']['phone']) > 0) {
+                                                $vpOrder->setPhone($responseItem['shippingAddress']['phone']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['email']) && strlen($responseItem['shippingAddress']['email']) > 0) {
+                                                $vpOrder->setPhone($responseItem['shippingAddress']['email']);
+                                            }
+                                        } else {
+                                            if ($this->devLogging) {
+                                                $this->devLog->info(print_r('Veepee no shipping address?', true));
+                                            }
                                         }
                                         try {
                                             $vpOrder->save();
@@ -476,7 +558,9 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                             $this->logger->critical('Error (getDeliveryOrdersForBatch) could not save order ' . $exception->getMessage());
                                         }
                                     } else {
-                                        $this->devLog->info(print_r('this is a NEW order with status '.$responseItem['status'], true));
+                                        if ($this->devLogging) {
+                                            $this->devLog->info(print_r('this is a NEW order with status ' . $responseItem['status'], true));
+                                        }
                                         $status = array_search(trim($responseItem['status']), $vpDeliveryOrderStatuses);
                                         if($status === false) {
                                             $status = 10; // unknown
@@ -500,7 +584,9 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                         }
                                         try {
                                             $newVpOrder->save();
-                                            $this->devLog->info(print_r('saved this NEW order! ', true));
+                                            if ($this->devLogging) {
+                                                $this->devLog->info(print_r('saved this NEW order! ', true));
+                                            }
                                         } catch (\Exception $exception) {
                                             if ($this->devLogging) {
                                                 $this->devLog->info(print_r('Error (getDeliveryOrdersForBatch) could not save order ' . $exception->getMessage(), true));
@@ -552,8 +638,10 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
         //{"country":"FR","city":"VILLERS LES NANCY","zipCode":"54600"}},
 
         foreach ($detailsArray as $detail) {
-            $this->devLog->info(print_r('dit is de detail ', true));
-            $this->devLog->info(print_r($detail, true));
+            if ($this->devLogging) {
+                //$this->devLog->info(print_r('The details:', true));
+                //$this->devLog->info(print_r($detail, true));
+            }
             $vpOrderItem = null;
             $vpOrderItemId = 0;
             $product = null;
@@ -582,7 +670,9 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                     try {
                         $vpOrderItem->save();
-                        $this->devLog->info(print_r('saved this NEW order item ', true));
+                        if ($this->devLogging) {
+                            $this->devLog->info(print_r('updated this veepee order item ', true));
+                        }
                     } catch (\Exception $exception) {
                         if ($this->devLogging) {
                             $this->devLog->info(print_r('Error (getDeliveryOrdersForBatch) could not save order item ' . $exception->getMessage(), true));
@@ -620,7 +710,9 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                     try {
                         $newVpOrderItem->save();
-                        $this->devLog->info(print_r('saved this NEW order item! ', true));
+                        if ($this->devLogging) {
+                            $this->devLog->info(print_r('saved this NEW veepee order item! ', true));
+                        }
                     } catch (\Exception $exception) {
                         if ($this->devLogging) {
                             $this->devLog->info(print_r('Error (getDeliveryOrdersForBatch) could not save order item ' . $exception->getMessage(), true));

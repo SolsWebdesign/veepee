@@ -100,6 +100,186 @@ interface VeepeeDeliveryOrdersInterface
     public function setMagentoComment(string $magentoComment);
 
     /**
+     * Get firstname
+     *
+     * @return string|null
+     */
+    public function getFirstname();
+
+    /**
+     * Set firstname
+     *
+     * @param string $firstname
+     * @return $this
+     */
+    public function setFirstname(string $firstname);
+
+    /**
+     * Get lastname
+     *
+     * @return string|null
+     */
+    public function getLastname();
+
+    /**
+     * Set lastname
+     *
+     * @param string $lastname
+     * @return $this
+     */
+    public function setLastname(string $lastname);
+
+    /**
+     * Get company_name
+     *
+     * @return string|null
+     */
+    public function getCompanyName();
+
+    /**
+     * Set companyName
+     *
+     * @param string $companyName
+     * @return $this
+     */
+    public function setCompanyName(string $companyName);
+
+	/**
+     * Get address_1
+     *
+     * @return string|null
+     */
+    public function getAddress1();
+
+	/**
+     * Set address_1
+     *
+     * @param string $address1
+     * @return $this
+     */
+    public function setAddress1(string $address1);
+
+	/**
+     * Get address_2
+     *
+     * @return string|null
+     */
+    public function getAddress2();
+
+	/**
+     * Set address_2
+     *
+     * @param string $address2
+     * @return $this
+     */
+    public function setAddress2(string $address2);
+
+	/**
+     * Get address_3
+     *
+     * @return string|null
+     */
+    public function getAddress3();
+
+	/**
+     * Set address_3
+     *
+     * @param string $address3
+     * @return $this
+     */
+    public function setAddress3(string $address3);
+
+	/**
+     * Get pickup_point
+     *
+     * @return string|null
+     */
+    public function getPickupPoint();
+
+	/**
+     * Set pickup_point
+     *
+     * @param string $pickupPoint
+     * @return $this
+     */
+    public function setPickupPoint(string $pickupPoint);
+
+	/**
+     * Get digicode
+     *
+     * @return string|null
+     */
+    public function getDigicode();
+
+    /**
+     * Set digicode
+     *
+     * @param string $digicode
+     * @return $this
+     */
+    public function setDigicode(string $digicode);
+
+	/**
+     * Get floor
+     *
+     * @return int|null
+     */
+    public function getFloor();
+
+    /**
+     * Set floor
+     *
+     * @param int $floor
+     * @return $this
+     */
+    public function setFloor(int $floor);
+
+	/**
+     * Get state
+     *
+     * @return string|null
+     */
+    public function getState();
+
+    /**
+     * Set state
+     *
+     * @param string $state
+     * @return $this
+     */
+    public function setState(string $state);
+
+	/**
+     * Get phone
+     *
+     * @return string|null
+     */
+    public function getPhone();
+
+    /**
+     * Set phone
+     *
+     * @param string $phone
+     * @return $this
+     */
+    public function setPhone(string $phone);
+
+	/**
+     * Get email
+     *
+     * @return string|null
+     */
+    public function getEmail();
+
+    /**
+     * Set email
+     *
+     * @param string $email
+     * @return $this
+     */
+    public function setEmail(string $email);
+
+    /**
      * Get zip code
      *
      * @return string|null

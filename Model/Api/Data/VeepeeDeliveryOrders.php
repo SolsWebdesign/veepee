@@ -78,6 +78,127 @@ class VeepeeDeliveryOrders extends \Magento\Framework\DataObject implements Veep
         return $this->setData('magento_comment', $magentoComment);
     }
 
+    public function getFirstname()
+    {
+        return $this->getData('firstname');
+    }
+
+
+    public function setFirstname(string $firstname)
+    {
+        return $this->setData('firstname', $firstname);
+    }
+
+    public function getLastname()
+    {
+        return $this->getData('lastname');
+    }
+
+    public function setLastname(string $lastname)
+    {
+        return $this->setData('lastname', $lastname);
+    }
+
+    public function getCompanyName()
+    {
+        return $this->getData('company_name');
+    }
+
+    public function setCompanyName(string $companyName)
+    {
+        return $this->setData('company_name', $companyName);
+    }
+
+    public function getAddress1()
+    {
+        return $this->getData('address_1');
+    }
+
+    public function setAddress1(string $address1)
+    {
+        return $this->setData('address_1', $address1);
+    }
+
+    public function getAddress2()
+    {
+        return $this->getData('address_2');
+    }
+
+    public function setAddress2(string $address2)
+    {
+        return $this->setData('address_2', $address2);
+    }
+
+    public function getAddress3()
+    {
+        return $this->getData('address_3');
+    }
+
+    public function setAddress3(string $address3)
+    {
+        return $this->setData('address_3', $address3);
+    }
+
+    public function getPickupPoint()
+    {
+        return $this->getData('pickup_point');
+    }
+
+    public function setPickupPoint(string $pickupPoint)
+    {
+        return $this->setData('pickup_point', $pickupPoint);
+    }
+
+    public function getDigicode()
+    {
+        return $this->getData('digicode');
+    }
+
+    public function setDigicode(string $digicode)
+    {
+        return $this->setData('digicode', $digicode);
+    }
+
+    public function getFloor()
+    {
+        return $this->getData('floor');
+    }
+
+    public function setFloor(int $floor)
+    {
+        return $this->setData('floor', $floor);
+    }
+
+    public function getState()
+    {
+        return $this->getData('state');
+    }
+
+    public function setState(string $state)
+    {
+        return $this->setData('state', $state);
+    }
+
+    public function getPhone()
+    {
+        return $this->getData('phone');
+    }
+
+    public function setPhone(string $phone)
+    {
+        return $this->setData('phone', $phone);
+    }
+
+    public function getEmail()
+    {
+        return $this->getData('email');
+    }
+
+    public function setEmail(string $email)
+    {
+        return $this->setData('email', $email);
+    }
+
     public function getZipCode()
     {
         return $this->getData('zip_code');

@@ -395,13 +395,27 @@ class VeePeeOrderManager
 
     public function assignCustomer($quote, $veepeeDeliveryOrder)
     {
-        $veepeeOrderId = $veepeeDeliveryOrder->getVeepeeOrderId();
+        if($veepeeDeliveryOrder->getFirstname() !== null && strlen($veepeeDeliveryOrder->getFirstname()) > 0) {
+            $firstname = $veepeeDeliveryOrder->getFirstname();
+        } else {
+            $firstname = $veepeeDeliveryOrder->getVeepeeOrderId();
+        }
+        if($veepeeDeliveryOrder->getLastname() !== null && strlen($veepeeDeliveryOrder->getLastname()) > 0) {
+            $lastname = $veepeeDeliveryOrder->getLastname();
+        } else {
+            $lastname = 'Veepee';
+        }
+        if($veepeeDeliveryOrder->getEmail() !== null && strlen($veepeeDeliveryOrder->getEmail()) > 0) {
+            $email = $veepeeDeliveryOrder->getEmail();
+        } else {
+            $email = $veepeeDeliveryOrder->getVeepeeOrderId().'@veepee.com';
+        }
         // we only have zipcode, city and country so we will create email and name
-        $email = $veepeeOrderId.'@veepee.com';
+        $email = $email;
         $quote->setCustomerId(0);
         $quote->setCustomerEmail($email);
-        $quote->setCustomerFirstname($veepeeOrderId);
-        $quote->setCustomerLastname('Veepee');
+        $quote->setCustomerFirstname($firstname);
+        $quote->setCustomerLastname($lastname);
         $quote->setCustomerIsGuest(1);
         $quote->setCustomerGroupId(GroupInterface::NOT_LOGGED_IN_ID);
         $quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
@@ -411,17 +425,53 @@ class VeePeeOrderManager
 
     public function getAddress($veepeeDeliveryOrder)
     {
+        if($veepeeDeliveryOrder->getFirstname() !== null && strlen($veepeeDeliveryOrder->getFirstname()) > 0) {
+            $firstname = $veepeeDeliveryOrder->getFirstname();
+        } else {
+            $firstname = $veepeeDeliveryOrder->getVeepeeOrderId();
+        }
+        if($veepeeDeliveryOrder->getLastname() !== null && strlen($veepeeDeliveryOrder->getLastname()) > 0) {
+            $lastname = $veepeeDeliveryOrder->getLastname();
+        } else {
+            $lastname = 'Veepee';
+        }
+        if($veepeeDeliveryOrder->getState() !== null && strlen($veepeeDeliveryOrder->getState()) > 0) {
+            $state = $veepeeDeliveryOrder->getState();
+        } else {
+            $state = '';
+        }
+        if($veepeeDeliveryOrder->getPhone() !== null && strlen($veepeeDeliveryOrder->getPhone()) > 0) {
+            $phone = $veepeeDeliveryOrder->getPhone();
+        } else {
+            $phone = '0123456789';
+        }
+        // get the address lines
+        $address = [];
+        if($veepeeDeliveryOrder->getAddress1() !== null && strlen($veepeeDeliveryOrder->getAddress1()) > 0) {
+            $address[] = $veepeeDeliveryOrder->getAddress1();
+        }
+        if($veepeeDeliveryOrder->getAddress2() !== null && strlen($veepeeDeliveryOrder->getAddress2()) > 0) {
+            $address[] = $veepeeDeliveryOrder->getAddress2();
+        }
+        if($veepeeDeliveryOrder->getAddress3() !== null && strlen($veepeeDeliveryOrder->getAddress3()) > 0) {
+            $address[] = $veepeeDeliveryOrder->getAddress3() !== null ;
+        }
+        if(count($address) > 0) {
+            $addressLine = implode(', ', $address);
+        } else {
+            $addressLine = 'n.a.';
+        }
         return array(
-            'firstname' => $veepeeDeliveryOrder->getVeepeeOrderId(),
-            'lastname' => 'Veepee',
+            'firstname' => $firstname,
+            'lastname' => $lastname,
             'prefix' => '',
             'suffix' => '',
-            'street' => 'street 1',
+            'street' => $addressLine,
             'city' => $veepeeDeliveryOrder->getCity(),
             'country_id' => $veepeeDeliveryOrder->getCountry(),
-            'region' => '',
+            'region' => $state,
             'postcode' => $veepeeDeliveryOrder->getZipCode(),
-            'telephone' => '0123456789',
+            'telephone' => $phone,
             'fax' => '',
             'save_in_address_book' => 0
         );

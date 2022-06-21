@@ -40,8 +40,13 @@ class CollectVeePeeOrders
                     $this->veePeeConnector->getBatches($operation->getCode());
                 }
             }
-            // now collect orders for batches
+            // now collect orders for batches with status available
             $batchesCollection = $this->veepeeBatchesRepository->getBatchesByStatus('Available');
+            foreach ($batchesCollection as $batch) {
+                $this->veePeeConnector->getDeliveryOrdersForBatch($batch->getBatchId());
+            }
+            // now collect orders for batches with status in progress
+            $batchesCollection = $this->veepeeBatchesRepository->getBatchesByStatus('InProgress');
             foreach ($batchesCollection as $batch) {
                 $this->veePeeConnector->getDeliveryOrdersForBatch($batch->getBatchId());
             }

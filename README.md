@@ -4,12 +4,12 @@ This is a first version. This connector can collect and process Veepee orders. I
 cron task to collect Veepee campaigns (also known as operations), batches and delivery orders. It has configuration for 
 the crons, for how many orders to process and an auto-process-orders and auto-invoice-orders setting.
 
-## What is this repository for?
+##What is this repository for?
 
 * Connecting your magento 2 store to Veepee.com for campaigns to retrieve and process veepee orders
 * Version 0.0.1
 
-## How do I get setup?
+##How do I get setup?
 
 * Magento 2.3.6 or newer, php7.4 or higher
 * Get your credentials at Veepee
@@ -19,11 +19,11 @@ the crons, for how many orders to process and an auto-process-orders and auto-in
 * Use the CLI functions to test if it can collect campaigns/operations, batches and orders
 * Test the various auto-settings
 
-## Who do I talk to?
+##Who do I talk to?
 
 * Try Isolde or someone at Veepee (anybody from Veepee willing to help?)
 
-## What is there to come?
+##What is there to come?
 
 We still have to build quite a bit of functionality:
 
