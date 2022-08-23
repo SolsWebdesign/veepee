@@ -175,6 +175,14 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 if (isset($response['access_token']) && strlen($response['access_token']) && isset($response['expires_in']) && $response['expires_in'] > 0) {
                     $veepeeTokenModel = $this->veepeeTokenFactory->create()->load(1);
                     if ($veepeeTokenModel->getId() > 0) {
+                        if ($this->devLogging) {
+                            $length = strlen($response['access_token']);
+                            if($length > 1000) {
+                                $this->devLog->info(print_r('Error, will save token but it is too long (should not be longer then 1000 and length is  ' . $length.')', true));
+                            } else {
+                                $this->devLog->info(print_r('token length is  ' . $length, true));
+                            }
+                        }
                         $veepeeTokenModel->setToken($response['access_token']);
                         $veepeeTokenModel->setExpiresIn($response['expires_in']);
                     } else {
@@ -538,11 +546,8 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                             if(isset($responseItem['shippingAddress']['phone']) && strlen($responseItem['shippingAddress']['phone']) > 0) {
                                                 $vpOrder->setPhone($responseItem['shippingAddress']['phone']);
                                             }
-                                            if(isset($responseItem['shippingAddress']['phone']) && strlen($responseItem['shippingAddress']['phone']) > 0) {
-                                                $vpOrder->setPhone($responseItem['shippingAddress']['phone']);
-                                            }
                                             if(isset($responseItem['shippingAddress']['email']) && strlen($responseItem['shippingAddress']['email']) > 0) {
-                                                $vpOrder->setPhone($responseItem['shippingAddress']['email']);
+                                                $vpOrder->setEmail($responseItem['shippingAddress']['email']);
                                             }
                                         } else {
                                             if ($this->devLogging) {
@@ -575,6 +580,61 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                             ->setCity($responseItem['city'])
                                             ->setCountry($responseItem['country'])
                                             ->setCarrierKey($responseItem['carrierKey']);
+                                        // shipping address
+                                        if(is_array($responseItem['shippingAddress']) && count($responseItem['shippingAddress']) > 0) {
+                                            if ($this->devLogging) {
+                                                $this->devLog->info(print_r('Veepee shipping address '.count($responseItem['shippingAddress']), true));
+                                                if(count($responseItem['shippingAddress']) > 3) {
+                                                    $this->devLog->info(print_r('Veepee shipping address with more then 3 items!', true));
+                                                    $this->devLog->info(print_r($responseItem['shippingAddress'], true));
+                                                }
+                                            }
+                                            if(isset($responseItem['shippingAddress']['country']) && strlen($responseItem['shippingAddress']['country']) > 0) {
+                                                $newVpOrder->setCountry($responseItem['shippingAddress']['country']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['city']) && strlen($responseItem['shippingAddress']['city']) > 0) {
+                                                $newVpOrder->setCity($responseItem['shippingAddress']['city']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['zipCode']) && strlen($responseItem['shippingAddress']['zipCode']) > 0) {
+                                                $newVpOrder->setZipCode($responseItem['shippingAddress']['zipCode']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['firstname']) && strlen($responseItem['shippingAddress']['firstname']) > 0) {
+                                                $newVpOrder->setFirstname($responseItem['shippingAddress']['firstname']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['lastname']) && strlen($responseItem['shippingAddress']['lastname']) > 0) {
+                                                $newVpOrder->setLastname($responseItem['shippingAddress']['lastname']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['companyName']) && strlen($responseItem['shippingAddress']['companyName']) > 0) {
+                                                $newVpOrder->setCompanyName($responseItem['shippingAddress']['companyName']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['digicode']) && strlen($responseItem['shippingAddress']['digicode']) > 0) {
+                                                $newVpOrder->setDigicode($responseItem['shippingAddress']['digicode']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['floor'])) {
+                                                $newVpOrder->setFloor($responseItem['shippingAddress']['floor']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['pickupPoint']) && strlen($responseItem['shippingAddress']['pickupPoint']) > 0) {
+                                                $newVpOrder->setPickupPoint($responseItem['shippingAddress']['pickupPoint']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['address1']) && strlen($responseItem['shippingAddress']['address1']) > 0) {
+                                                $newVpOrder->setAddress1($responseItem['shippingAddress']['address1']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['address2']) && strlen($responseItem['shippingAddress']['address2']) > 0) {
+                                                $newVpOrder->setAddress2($responseItem['shippingAddress']['address2']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['address3']) && strlen($responseItem['shippingAddress']['address3']) > 0) {
+                                                $newVpOrder->setAddress3($responseItem['shippingAddress']['address3']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['state']) && strlen($responseItem['shippingAddress']['state']) > 0) {
+                                                $newVpOrder->setState($responseItem['shippingAddress']['state']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['phone']) && strlen($responseItem['shippingAddress']['phone']) > 0) {
+                                                $newVpOrder->setPhone($responseItem['shippingAddress']['phone']);
+                                            }
+                                            if(isset($responseItem['shippingAddress']['email']) && strlen($responseItem['shippingAddress']['email']) > 0) {
+                                                $newVpOrder->setEmail($responseItem['shippingAddress']['email']);
+                                            }
+                                        }
                                         // creation date is on batch level
                                         if(isset($response['creationDate']) && strlen($response['creationDate']) > 0) {
                                             $newVpOrder->setCreationDate($response['creationDate']);

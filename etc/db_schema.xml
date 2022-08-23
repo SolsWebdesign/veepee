@@ -106,7 +106,7 @@
     <table name="veepee_token" resource="default" engine="innodb" comment="Veepee token">
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
                 comment="Entity Id"/>
-        <column xsi:type="varchar" name="token" nullable="true" length="700" comment="Access token"/>
+        <column xsi:type="varchar" name="token" nullable="true" length="1000" comment="Access token"/>
         <column xsi:type="int" name="expires_in" padding="10" unsigned="true" nullable="true" identity="false"
                 default="0" comment="Expires in"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
