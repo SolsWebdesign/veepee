@@ -19,7 +19,8 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku;
+//use Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku; // looks like Forza does not have this
+use Magento\Framework\Module\Manager;
 use Magento\Customer\Api\Data\GroupInterface;
 // invoice
 use Magento\Framework\DB\Transaction;
@@ -46,6 +47,8 @@ class VeePeeOrderManager
     protected $productModel;
     protected $productRepository;
     protected $getSalableQuantityDataBySku;
+    protected $stockRegistry;
+    protected $moduleManager;
     protected $storeManager;
     // protected $orderSender; // not (yet) needed
     protected $transaction;
@@ -58,6 +61,7 @@ class VeePeeOrderManager
     protected $veepeeDeliveryOrderItemsRepository;
     protected $deliveryOrdersCollectionFactory;
     protected $dryRun = false; // use for testing cron without placing actual orders
+    protected $msiEnabled = false;
     protected $devLog;
     protected $devLogging;
     private $logger;
@@ -70,7 +74,8 @@ class VeePeeOrderManager
         StoreManagerInterface $storeManager,
         Product $productModel,
         ProductRepositoryInterface $productRepository,
-        GetSalableQuantityDataBySku $getSalableQuantityDataBySku,
+        //GetSalableQuantityDataBySku $getSalableQuantityDataBySku,
+        Manager $moduleManager,
         // OrderSender $orderSender,
         Transaction $transaction,
         InvoiceService $invoiceService,
@@ -79,7 +84,9 @@ class VeePeeOrderManager
         VeepeeDeliveryOrdersRepositoryInterface $veepeeDeliveryOrdersRepository,
         VeepeeDeliveryOrderItemsRepositoryInterface $veepeeDeliveryOrderItemsRepository,
         DeliveryOrdersCollectionFactory $deliveryOrdersCollectionFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        // Forza specific
+        \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
     )
     {
         $this->config = $config;
@@ -88,7 +95,9 @@ class VeePeeOrderManager
         $this->deliveryOrdersCollectionFactory = $deliveryOrdersCollectionFactory;
         $this->productRepository = $productRepository;
         $this->productModel = $productModel;
-        $this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
+        //$this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
+        $this->moduleManager = $moduleManager;
+        $this->stockRegistry = $stockRegistry;
         $this->storeManager = $storeManager;
         $this->orderRepository = $orderRepository;
         $this->checkoutSession = $checkoutSession;
@@ -112,6 +121,16 @@ class VeePeeOrderManager
 
         if ($this->config->isEnabled()) {
             $this->veepeeApiUrl = $this->config->getVeePeeApiUrl();
+        }
+        if($this->moduleManager->isEnabled('Magento_Inventory')) {
+            $this->msiEnabled = true;
+            if($this->devLogging) {
+                $this->devLog->info(print_r('msi is enabled', true));
+            }
+        } else {
+            if($this->devLogging) {
+                $this->devLog->info(print_r('msi is disabled', true));
+            }
         }
     }
 
@@ -178,7 +197,12 @@ class VeePeeOrderManager
                     if (is_array($deliveryOrderItems) && count($deliveryOrderItems) > 0) {
                         $cannotPlaceOrder = false;
                         $productIdsAndQtysNeeded = [];
+                        $i = 0;
                         foreach ($deliveryOrderItems as $item) {
+                            $i++;
+                            if($i > 20) {
+                                break;
+                            }
                             $productId = $qty = $qtyParcelled = 0; // empty them
                             $sku = $item->getSupplierReference();
                             $qty = $item->getQty();
@@ -198,37 +222,49 @@ class VeePeeOrderManager
                                     $this->logger->critical('ERROR ' . $exception->getMessage());
                                 }
                                 if (isset($productId) && $productId > 0) {
-                                    // okay good work, is there stock?
-                                    $salableQtyArray = $this->getSalableQuantityDataBySku->execute($sku);
-                                    // salableQty looks like:
-                                    //[0] => Array (
-                                    //  [stock_name] => Default Stock
-                                    //  [qty] => 100
-                                    //  [manage_stock] => 1
-                                    //)
-                                    if ($this->devLogging) {
-                                        $this->devLog->info(print_r('Product with sku ' . $sku . ' has salableQty of:', true));
-                                        $this->devLog->info(print_r($salableQtyArray, true));
-                                    }
-                                    // we will just use default stock for now:
-                                    // todo sometimes this array is empty
-                                    if(is_array($salableQtyArray) && count($salableQtyArray) > 0) {
-                                        $salableQty = $salableQtyArray[0]['qty'];
-                                    }
-                                    if (isset($salableQty)) {
-                                        if($salableQty >= $stillNeeded) {
-                                            // so we actually can buy this product
-                                            if ($this->devLogging) {
-                                                $this->devLog->info(print_r('Product with sku ' . $sku . ' is available.', true));
+                                    if($this->msiEnabled) {
+                                        // okay good work, is there stock?
+                                        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+
+                                        $this->getSalableQuantityDataBySku = $objectManager->create('Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku');
+                                        /** Apply filters here */
+                                        $salableQtyArray = $this->getSalableQuantityDataBySku->execute($sku);
+                                        // salableQty looks like:
+                                        //[0] => Array (
+                                        //  [stock_name] => Default Stock
+                                        //  [qty] => 100
+                                        //  [manage_stock] => 1
+                                        //)
+                                        if ($this->devLogging) {
+                                            $this->devLog->info(print_r('Product with sku ' . $sku . ' has salableQty of:', true));
+                                            $this->devLog->info(print_r($salableQtyArray, true));
+                                        }
+                                        // we will just use default stock for now:
+                                        // todo sometimes this array is empty
+                                        if (is_array($salableQtyArray) && count($salableQtyArray) > 0) {
+                                            $salableQty = $salableQtyArray[0]['qty'];
+                                        }
+                                        if (isset($salableQty)) {
+                                            if ($salableQty >= $stillNeeded) {
+                                                // so we actually can buy this product
+                                                if ($this->devLogging) {
+                                                    $this->devLog->info(print_r('Product with sku ' . $sku . ' is available.', true));
+                                                }
+                                                $productIdsAndQtysNeeded[] = array('product_id' => $productId, 'qty' => $stillNeeded);
+                                            } else {
+                                                $magentoComment .= 'Product sku ' . $sku . ' salableQty ' . $salableQty . ' not enough. ';
+                                                $cannotPlaceOrder = true;
                                             }
-                                            $productIdsAndQtysNeeded[] = array('product_id' => $productId, 'qty' => $stillNeeded);
                                         } else {
-                                            $magentoComment .= 'Product sku ' . $sku . ' salableQty ' . $salableQty . ' not enough. ';
+                                            $magentoComment .= 'Product sku ' . $sku . ' seems to have no salableQty at all. Please check product.';
                                             $cannotPlaceOrder = true;
                                         }
                                     } else {
-                                        $magentoComment .= 'Product sku ' . $sku . ' seems to have no salableQty at all. Please check product.';
-                                        $cannotPlaceOrder = true;
+                                        $stock = $this->stockState->getStockQty($productId, 1);
+                                        if ($this->devLogging) {
+                                            $this->devLog->info(print_r('Product with sku ' . $sku . ' has stock of:', true));
+                                            $this->devLog->info(print_r($stock, true));
+                                        }
                                     }
                                 } else {
                                     if ($this->devLogging) {
@@ -236,6 +272,25 @@ class VeePeeOrderManager
                                     }
                                     $magentoComment .= 'Product sku ' . $sku . ' not found. ';
                                     $cannotPlaceOrder = true;
+                                    // let us try to get an existing product and its stock
+                                    $skuTest = 'S016C864GO';
+                                    try {
+                                        // fastest way:
+                                        $productId = $this->productModel->getIdBySku($skuTest);
+                                    } catch (\Exception $exception) {
+                                        if ($this->devLogging) {
+                                            $this->devLog->info(print_r('Error could not load product ' . $exception->getMessage(), true));
+                                        }
+                                        $this->logger->critical('ERROR ' . $exception->getMessage());
+                                    }
+                                    if (isset($productId) && $productId > 0) {
+                                        $stockRegistryItem = $this->stockRegistry->getStockItemBySku($skuTest);
+                                        $stock = $stockRegistryItem->getQty();
+                                        if ($this->devLogging) {
+                                            $this->devLog->info(print_r('Product with sku ' . $skuTest . ' has stock of:', true));
+                                            $this->devLog->info(print_r($stock, true));
+                                        }
+                                    }
                                 }
                             }
                         }

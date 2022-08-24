@@ -35,7 +35,7 @@
             <argument name="collectionFactory" xsi:type="object">SolsWebdesign\VeePee\Model\ResourceModel\VeepeeDeliveryOrders\CollectionFactory</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="submit_url" xsi:type="url" path="tsmsupplier/item/save"/>
+                    <item name="submit_url" xsi:type="url" path="veepee/vpitem/save"/>
                 </item>
             </argument>
         </argument>

@@ -513,11 +513,11 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                             if(isset($responseItem['shippingAddress']['zipCode']) && strlen($responseItem['shippingAddress']['zipCode']) > 0) {
                                                 $vpOrder->setZipCode($responseItem['shippingAddress']['zipCode']);
                                             }
-                                            if(isset($responseItem['shippingAddress']['firstname']) && strlen($responseItem['shippingAddress']['firstname']) > 0) {
-                                                $vpOrder->setFirstname($responseItem['shippingAddress']['firstname']);
+                                            if(isset($responseItem['shippingAddress']['firstName']) && strlen($responseItem['shippingAddress']['firstName']) > 0) {
+                                                $vpOrder->setFirstname($responseItem['shippingAddress']['firstName']);
                                             }
-                                            if(isset($responseItem['shippingAddress']['lastname']) && strlen($responseItem['shippingAddress']['lastname']) > 0) {
-                                                $vpOrder->setLastname($responseItem['shippingAddress']['lastname']);
+                                            if(isset($responseItem['shippingAddress']['lastName']) && strlen($responseItem['shippingAddress']['lastName']) > 0) {
+                                                $vpOrder->setLastname($responseItem['shippingAddress']['lastName']);
                                             }
                                             if(isset($responseItem['shippingAddress']['companyName']) && strlen($responseItem['shippingAddress']['companyName']) > 0) {
                                                 $vpOrder->setCompanyName($responseItem['shippingAddress']['companyName']);
@@ -598,11 +598,11 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                             if(isset($responseItem['shippingAddress']['zipCode']) && strlen($responseItem['shippingAddress']['zipCode']) > 0) {
                                                 $newVpOrder->setZipCode($responseItem['shippingAddress']['zipCode']);
                                             }
-                                            if(isset($responseItem['shippingAddress']['firstname']) && strlen($responseItem['shippingAddress']['firstname']) > 0) {
-                                                $newVpOrder->setFirstname($responseItem['shippingAddress']['firstname']);
+                                            if(isset($responseItem['shippingAddress']['firstName']) && strlen($responseItem['shippingAddress']['firstName']) > 0) {
+                                                $newVpOrder->setFirstname($responseItem['shippingAddress']['firstName']);
                                             }
-                                            if(isset($responseItem['shippingAddress']['lastname']) && strlen($responseItem['shippingAddress']['lastname']) > 0) {
-                                                $newVpOrder->setLastname($responseItem['shippingAddress']['lastname']);
+                                            if(isset($responseItem['shippingAddress']['lastName']) && strlen($responseItem['shippingAddress']['lastName']) > 0) {
+                                                $newVpOrder->setLastname($responseItem['shippingAddress']['lastName']);
                                             }
                                             if(isset($responseItem['shippingAddress']['companyName']) && strlen($responseItem['shippingAddress']['companyName']) > 0) {
                                                 $newVpOrder->setCompanyName($responseItem['shippingAddress']['companyName']);
