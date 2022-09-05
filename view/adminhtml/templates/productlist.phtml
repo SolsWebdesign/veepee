@@ -1,0 +1,55 @@
+<?php
+/**
+ * Product : VeePee M2 Connection
+ *
+ * @copyright Copyright © 2022 VeePee M2 Connection. All rights reserved.
+ * @author    Isolde van Oosterhout
+ *
+ * @var $block \SolsWebdesign\VeePee\Block\Adminhtml\ProductList
+ */
+$items = $block->getVeepeeOrderProducts();
+?>
+<div style="overflow:hidden">
+    <div style="margin-bottom:50px;width:90%;overflow:hidden;">
+        <div class="order-information product-table">
+        <?php if(is_array($items) && count($items) > 0): ?>
+            <table class="admin__table-secondary order-information-table">
+                <tbody>
+                <tr>
+                    <th><strong>Sku (Supplier Reference)</strong></th>
+                    <th><strong>Veepee Product Name</strong></th>
+                    <th><strong>Veepee Product ID</strong></th>
+                    <th><strong>EAN list</strong></th>
+                    <th><strong>Qty ordered</strong></th>
+                    <th><strong>Qty parceled</strong></th>
+                    <th><strong>Qty labeled</strong></th>
+                    <th><strong>Qty shipped</strong></th>
+                    <th><strong>Qty stockout</strong></th>
+                    <th><strong>Edit link</strong></th>
+                </tr>
+                <?php foreach ($items as $key => $item): ?>
+                <tr>
+                    <?php if(is_array($item) && count($item) > 0): ?>
+                        <td><?php echo $item['supplier_reference'] ?></td>
+                        <td><?php echo $item['veepee_product_name'] ?></td>
+                        <td><?php echo $item['veepee_product_id'] ?></td>
+                        <td><?php echo $item['ean_list'] ?></td>
+                        <td><?php echo $item['qty'] ?></td>
+                        <td><?php echo $item['qty_parcelled'] ?></td>
+                        <td><?php echo $item['qty_labeled'] ?></td>
+                        <td><?php echo $item['qty_shipped'] ?></td>
+                        <td><?php echo $item['qty_stockout'] ?></td>
+                        <td><a href="<?php echo $item['edit_link'] ?>">Edit</a></td>
+                    <?php else: ?>
+                        <p>An error occured.</p>
+                    <?php endif; ?>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>There where no products found for this order.</p>
+        <?php endif; ?>
+</div>
+</div>
+</div>

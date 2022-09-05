@@ -56,6 +56,16 @@
                 </item>
             </argument>
         </column>
+        <column name="batch_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">false</item>
+                    <item name="sorting" xsi:type="string">desc</item>
+                    <item name="sortable" xsi:type="string">true</item>
+                    <item name="label" xsi:type="string" translate="true">Batch ID</item>
+                </item>
+            </argument>
+        </column>
         <column name="magento_order_id" sortOrder="10" class="SolsWebdesign\VeePee\Ui\Component\Grid\Column\OrderIncrementId">
             <settings>
                 <dataType>text</dataType>

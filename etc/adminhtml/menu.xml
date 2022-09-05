@@ -19,6 +19,15 @@
             action="veepee/operations/index"
             resource="SolsWebdesign_VeePee::campaigns"/>
         <add
+            id="SolsWebdesign_VeePee::batches"
+            title="VeePee Batches"
+            translate="title"
+            module="SolsWebdesign_VeePee"
+            sortOrder="10"
+            parent="SolsWebdesign_VeePee::menu"
+            action="veepee/batches/index"
+            resource="SolsWebdesign_VeePee::batches"/>
+        <add
             id="SolsWebdesign_VeePee::orders"
             title="VeePee Orders"
             translate="title"

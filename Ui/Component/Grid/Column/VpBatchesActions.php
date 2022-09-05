@@ -14,12 +14,10 @@ use Magento\Framework\UrlInterface;
 use SolsWebdesign\VeePee\Block\Adminhtml\Item\Grid\Renderer\Action\UrlBuilder;
 use SolsWebdesign\VeePee\Model\Config;
 
-class VpActions extends Column
+class VpBatchesActions extends Column
 {
     /** Url path */
-    const VP_URL_PATH_EDIT = 'veepee/Vpitem/edit';
-    const VP_URL_PATH_CANCEL = 'veepee/Vpitem/cancel';
-    const VP_URL_PATH_PUSH = 'veepee/Vpitem/push';
+    const VP_ORDER_COLLECT_URL_PATH = 'veepee/orders/collect';
 
     /** @var UrlBuilder */
     protected $actionUrlBuilder;
@@ -56,21 +54,9 @@ class VpActions extends Column
             foreach ($dataSource['data']['items'] as & $item) {
                 $name = $this->getData('name');
                 if (isset($item['entity_id'])) {
-                    $item[$name]['edit'] = [
-                        'href' => $this->urlBuilder->getUrl(self::VP_URL_PATH_EDIT, ['id' => $item['entity_id']]),
-                        'label' => __('Edit')
-                    ];
-                    $item[$name]['push'] = [
-                        'href' => $this->urlBuilder->getUrl(self::VP_URL_PATH_PUSH, ['id' => $item['entity_id']]),
-                        'label' => __('Push Order')
-                    ];
-                    $item[$name]['cancel'] = [
-                        'href' => $this->urlBuilder->getUrl(self::VP_URL_PATH_CANCEL, ['id' => $item['entity_id']]),
-                        'label' => __('Cancel'),
-                        'confirm' => [
-                            'title' => __('Cancel %1', $item['entity_id']),
-                            'message' => __('Are you sure you want to cancel this %1 veepee order?', $item['entity_id'])
-                        ]
+                    $item[$name]['collect'] = [
+                        'href' => $this->urlBuilder->getUrl(self::VP_ORDER_COLLECT_URL_PATH, ['id' => $item['entity_id']]),
+                        'label' => __('Collect Orders')
                     ];
                 }
             }
@@ -78,3 +64,4 @@ class VpActions extends Column
         }
     }
 }
+

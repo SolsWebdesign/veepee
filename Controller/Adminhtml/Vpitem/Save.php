@@ -26,40 +26,44 @@ class Save extends \Magento\Backend\App\Action
 
     public function execute()
     {
-        $data = $this->getRequest()->getPostValue();
-        if($data) {
-            $id = $this->getRequest()->getParam('entity_id');
-            if (isset($id) && $id > 0) {
-                $veepeeOrder = $this->veepeeOrdersFactory->create()->load($id);
-            } else {
-                $veepeeOrder = $this->veepeeOrdersFactory->create();
+        if (!$this->_isAllowed()) {
+            $this->messageManager->addErrorMessage('Not authorized');
+        } else {
+            $data = $this->getRequest()->getPostValue();
+            if ($data) {
+                $id = $this->getRequest()->getParam('entity_id');
+                if (isset($id) && $id > 0) {
+                    $veepeeOrder = $this->veepeeOrdersFactory->create()->load($id);
+                } else {
+                    $veepeeOrder = $this->veepeeOrdersFactory->create();
+                }
+                try {
+                    $veepeeOrder->setMagentoOrderId($data['magento_order_id']);
+                    $veepeeOrder->setMagentoComment($data['magento_comment']);
+                    $veepeeOrder->setFirstname($data['firstname']);
+                    $veepeeOrder->setLastname($data['lastname']);
+                    $veepeeOrder->setCompanyName($data['company_name']);
+                    $veepeeOrder->setAddress1($data['address_1']);
+                    $veepeeOrder->setAddress2($data['address_2']);
+                    $veepeeOrder->setAddress3($data['address_3']);
+                    $veepeeOrder->setZipCode($data['zip_code']);
+                    $veepeeOrder->setCity($data['city']);
+                    $veepeeOrder->setCountry($data['country']);
+                    $veepeeOrder->setPickupPoint($data['pickup_point']);
+                    $veepeeOrder->setFloor($data['floor']);
+                    $veepeeOrder->setState($data['state']);
+                    $veepeeOrder->setPhone($data['phone']);
+                    $veepeeOrder->setEmail($data['email']);
+                    $veepeeOrder->setCarrierKey($data['carrier_key']);
+                    $veepeeOrder->save();
+                    $this->messageManager->addSuccessMessage(__('Veepee order saved'));
+                } catch (LocalizedException $e) {
+                    $this->messageManager->addErrorMessage($e->getMessage());
+                } catch (\Exception $e) {
+                    $this->messageManager->addExceptionMessage($e, __('Something went wrong while saving the veepee order.'));
+                }
+                return $this->resultRedirectFactory->create()->setPath('veepee/orders/index');
             }
-            try {
-                $veepeeOrder->setMagentoOrderId($data['magento_order_id']);
-                $veepeeOrder->setMagentoComment($data['magento_comment']);
-                $veepeeOrder->setFirstname($data['firstname']);
-                $veepeeOrder->setLastname($data['lastname']);
-                $veepeeOrder->setCompanyName($data['company_name']);
-                $veepeeOrder->setAddress1($data['address_1']);
-                $veepeeOrder->setAddress2($data['address_2']);
-                $veepeeOrder->setAddress3($data['address_3']);
-                $veepeeOrder->setZipCode($data['zip_code']);
-                $veepeeOrder->setCity($data['city']);
-                $veepeeOrder->setCountry($data['country']);
-                $veepeeOrder->setPickupPoint($data['pickup_point']);
-                $veepeeOrder->setFloor($data['floor']);
-                $veepeeOrder->setState($data['state']);
-                $veepeeOrder->setPhone($data['phone']);
-                $veepeeOrder->setEmail($data['email']);
-                $veepeeOrder->setCarrierKey($data['carrier_key']);
-                $veepeeOrder->save();
-                $this->messageManager->addSuccessMessage(__('Veepee order saved'));
-            } catch (LocalizedException $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
-            } catch (\Exception $e) {
-                $this->messageManager->addExceptionMessage($e, __('Something went wrong while saving the veepee order.'));
-            }
-            return $this->resultRedirectFactory->create()->setPath('veepee/orders/index');
         }
     }
 

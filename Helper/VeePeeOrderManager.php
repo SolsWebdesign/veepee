@@ -193,110 +193,10 @@ class VeePeeOrderManager
                     }
                     // get products for order and find them by sku (supplier_reference)
                     $deliveryOrderItems = $this->veepeeDeliveryOrderItemsRepository->getByVeepeeOrderId($veepeeOrderId);
-                    $magentoComment = '';
                     if (is_array($deliveryOrderItems) && count($deliveryOrderItems) > 0) {
-                        $cannotPlaceOrder = false;
-                        $productIdsAndQtysNeeded = [];
-                        $i = 0;
-                        foreach ($deliveryOrderItems as $item) {
-                            $i++;
-                            if($i > 20) {
-                                break;
-                            }
-                            $productId = $qty = $qtyParcelled = 0; // empty them
-                            $sku = $item->getSupplierReference();
-                            $qty = $item->getQty();
-                            $qtyParcelled = $item->getQtyParcelled();
-                            if ($this->devLogging) {
-                                $this->devLog->info(print_r('found item with sku ' . $sku . ' and qty ' . $qty . ' and qtyParcelled ' . $qtyParcelled, true));
-                            }
-                            if ($qty > $qtyParcelled) {
-                                $stillNeeded = $qty - $qtyParcelled;
-                                try {
-                                    // fastest way:
-                                    $productId = $this->productModel->getIdBySku($sku);
-                                } catch (\Exception $exception) {
-                                    if ($this->devLogging) {
-                                        $this->devLog->info(print_r('Error could not load product ' . $exception->getMessage(), true));
-                                    }
-                                    $this->logger->critical('ERROR ' . $exception->getMessage());
-                                }
-                                if (isset($productId) && $productId > 0) {
-                                    if($this->msiEnabled) {
-                                        // okay good work, is there stock?
-                                        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-
-                                        $this->getSalableQuantityDataBySku = $objectManager->create('Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku');
-                                        /** Apply filters here */
-                                        $salableQtyArray = $this->getSalableQuantityDataBySku->execute($sku);
-                                        // salableQty looks like:
-                                        //[0] => Array (
-                                        //  [stock_name] => Default Stock
-                                        //  [qty] => 100
-                                        //  [manage_stock] => 1
-                                        //)
-                                        if ($this->devLogging) {
-                                            $this->devLog->info(print_r('Product with sku ' . $sku . ' has salableQty of:', true));
-                                            $this->devLog->info(print_r($salableQtyArray, true));
-                                        }
-                                        // we will just use default stock for now:
-                                        // todo sometimes this array is empty
-                                        if (is_array($salableQtyArray) && count($salableQtyArray) > 0) {
-                                            $salableQty = $salableQtyArray[0]['qty'];
-                                        }
-                                        if (isset($salableQty)) {
-                                            if ($salableQty >= $stillNeeded) {
-                                                // so we actually can buy this product
-                                                if ($this->devLogging) {
-                                                    $this->devLog->info(print_r('Product with sku ' . $sku . ' is available.', true));
-                                                }
-                                                $productIdsAndQtysNeeded[] = array('product_id' => $productId, 'qty' => $stillNeeded);
-                                            } else {
-                                                $magentoComment .= 'Product sku ' . $sku . ' salableQty ' . $salableQty . ' not enough. ';
-                                                $cannotPlaceOrder = true;
-                                            }
-                                        } else {
-                                            $magentoComment .= 'Product sku ' . $sku . ' seems to have no salableQty at all. Please check product.';
-                                            $cannotPlaceOrder = true;
-                                        }
-                                    } else {
-                                        $stock = $this->stockState->getStockQty($productId, 1);
-                                        if ($this->devLogging) {
-                                            $this->devLog->info(print_r('Product with sku ' . $sku . ' has stock of:', true));
-                                            $this->devLog->info(print_r($stock, true));
-                                        }
-                                    }
-                                } else {
-                                    if ($this->devLogging) {
-                                        $this->devLog->info(print_r('Product with sku ' . $sku . ' was NOT found!', true));
-                                    }
-                                    $magentoComment .= 'Product sku ' . $sku . ' not found. ';
-                                    $cannotPlaceOrder = true;
-                                    // let us try to get an existing product and its stock
-                                    $skuTest = 'S016C864GO';
-                                    try {
-                                        // fastest way:
-                                        $productId = $this->productModel->getIdBySku($skuTest);
-                                    } catch (\Exception $exception) {
-                                        if ($this->devLogging) {
-                                            $this->devLog->info(print_r('Error could not load product ' . $exception->getMessage(), true));
-                                        }
-                                        $this->logger->critical('ERROR ' . $exception->getMessage());
-                                    }
-                                    if (isset($productId) && $productId > 0) {
-                                        $stockRegistryItem = $this->stockRegistry->getStockItemBySku($skuTest);
-                                        $stock = $stockRegistryItem->getQty();
-                                        if ($this->devLogging) {
-                                            $this->devLog->info(print_r('Product with sku ' . $skuTest . ' has stock of:', true));
-                                            $this->devLog->info(print_r($stock, true));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if ($cannotPlaceOrder) {
-                            // okay save comment and notify
-                            $magentoComment = 'Cannot place Order: ' . $magentoComment;
+                        $results = $this->walkThroughVeepeeDeliveryOrderItems($deliveryOrderItems);
+                        if(!$results['can_place']) {
+                            $magentoComment = 'Cannot place Order:' .$results['magento_comment'];
                             try {
                                 $veepeeDeliveryOrder->setMagentoComment($magentoComment);
                                 $veepeeDeliveryOrder->save();
@@ -308,6 +208,7 @@ class VeePeeOrderManager
                             }
                             return $magentoComment;
                         } else {
+                            $productIdsAndQtysNeeded = $results['products_and_qtys'];
                             if ($this->dryRun) {
                                 $magentoComment = 'Can place Order: product(s) found and enough stock.';
                                 try {
@@ -335,6 +236,128 @@ class VeePeeOrderManager
                 return 'Delivery Order with veepee_order_id ' . $veepeeOrderId . ' not found.';
             }
         }
+    }
+
+    public function walkThroughVeepeeDeliveryOrderItems($deliveryOrderItems) {
+        $cannotPlaceOrder = false;
+        $productIdsAndQtysNeeded = [];
+        $magentoComment = '';
+        foreach ($deliveryOrderItems as $item) {
+            $productId = $qty = $qtyParcelled = 0; // empty them
+            $sku = $item->getSupplierReference(); // sku
+            $qty = $item->getQty();
+            $qtyParcelled = $item->getQtyParcelled();
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('found item with sku ' . $sku . ' and qty ' . $qty . ' and qtyParcelled ' . $qtyParcelled, true));
+            }
+            if($cannotPlaceOrder) {
+                break; // no use continuing
+            }
+            if ($qty > $qtyParcelled) {
+                $stillNeeded = $qty - $qtyParcelled;
+                try {
+                    // fastest way:
+                    $productId = $this->productModel->getIdBySku($sku);
+                } catch (\Exception $exception) {
+                    if ($this->devLogging) {
+                        $this->devLog->info(print_r('Error could not load product ' . $exception->getMessage(), true));
+                    }
+                    $this->logger->critical('ERROR ' . $exception->getMessage());
+                }
+                if (isset($productId) && $productId > 0) {
+                    if ($this->devLogging) {
+                        $this->devLog->info(print_r('product with ' . $sku.' exists.', true));
+                    }
+                    // first check if it is enabled!
+                    $product = $this->productRepository->getById($productId); // or productRepository->get($sku)
+                    if($product->getStatus() != 1) {
+                        if ($this->devLogging) {
+                            $this->devLog->info(print_r('product with ' . $sku. ' is NOT enabled.', true));
+                            $this->devLog->info(print_r('status', true));
+                            $this->devLog->info(print_r($product->getStatus(), true));
+                        }
+                        $magentoComment .= 'Product sku ' . $sku . ' exists but is NOT enabled.';
+                        $cannotPlaceOrder = true;
+                    } else {
+                        // check if product has stock management:
+                        $stockRegistryItem = $this->stockRegistry->getStockItemBySku($sku);
+                        $stockManagement = $stockRegistryItem->getManagementStock();
+                        if ($stockManagement) {
+                            if ($this->devLogging) {
+                                $this->devLog->info(print_r('Stock is being managed for sku ' . $sku, true));
+                            }
+                            if ($this->msiEnabled) {
+                                $stockAvailable = $this->getStockUsingMsiForProduct($product);
+                                if ($this->devLogging) {
+                                    $this->devLog->info(print_r('Product with sku ' . $sku . ' has (msi) stock of : ', true));
+                                    $this->devLog->info(print_r($stockAvailable, true));
+                                }
+                            } else {
+                                //$stockAvailable = $this->stockState->getStockQty($productId, 1);
+                                $stockAvailable = $stockRegistryItem->getQty();
+                                if ($this->devLogging) {
+                                    $this->devLog->info(print_r('Product with sku ' . $sku . ' has (non-msi) stock of : ', true));
+                                    $this->devLog->info(print_r($stockAvailable, true));
+                                }
+                            }
+                            if ($stockAvailable >= $stillNeeded) {
+                                // so we actually can buy this product
+                                if ($this->devLogging) {
+                                    $this->devLog->info(print_r('Product with sku ' . $sku . ' is available.', true));
+                                }
+                                $productIdsAndQtysNeeded[] = array('product_id' => $productId, 'qty' => $stillNeeded);
+                            } else {
+                                $magentoComment .= 'Product sku ' . $sku . ' has ' . $stockAvailable . ' and still needed is ' . $stillNeeded . ', so it is not enough. ';
+                                $cannotPlaceOrder = true;
+                            }
+                        } else {
+                            // product can always be sold
+                            $productIdsAndQtysNeeded[] = array('product_id' => $productId, 'qty' => $stillNeeded);
+                        }
+                    }
+                } else {
+                    if ($this->devLogging) {
+                        $this->devLog->info(print_r('Product with sku ' . $sku . ' was NOT found!', true));
+                    }
+                    $magentoComment .= ' Product sku ' . $sku . ' not found. ';
+                    $cannotPlaceOrder = true;
+                }
+            }
+        }
+        if($cannotPlaceOrder) {
+            return ['can_place' => false, 'magento_comment' => $magentoComment];
+        } else {
+            return ['can_place' => true, 'products_and_qtys' => $productIdsAndQtysNeeded];
+        }
+    }
+
+    public function getStockUsingMsiForProduct($sku)
+    {
+        $quantityAvailable = 0;
+        // okay, use msi
+        // why do we use object manager here?
+        // Because shops that have MSI disabled will break
+        // if the construct contains InventorySalesAdminUi .. so we need to call it here directly
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->getSalableQuantityDataBySku = $objectManager->create('Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku');
+        $salableQtyArray = $this->getSalableQuantityDataBySku->execute($sku);
+        // salableQty looks like:
+        //[0] => Array (
+        //  [stock_name] => Default Stock
+        //  [qty] => 100
+        //  [manage_stock] => 1
+        //)
+        if ($this->devLogging) {
+            $this->devLog->info(print_r('Product with sku ' . $sku . ' has salableQty of:', true));
+            $this->devLog->info(print_r($salableQtyArray, true));
+        }
+        // go through all available stock management locations:
+        if (is_array($salableQtyArray) && count($salableQtyArray) > 0) {
+            foreach($salableQtyArray as $salableQty) {
+                $quantityAvailable += $salableQty['qty'];
+            }
+        }
+        return $quantityAvailable;
     }
 
     public function placeOrder($veepeeDeliveryOrder, $productIdsAndQtysNeeded, $storeId = 1)

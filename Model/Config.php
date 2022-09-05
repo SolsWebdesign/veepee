@@ -87,7 +87,7 @@ class Config
 
     public function getVeePeeApiUrl()
     {
-        return $this->config->getValue(self::XML_API_URL);
+        return trim($this->config->getValue(self::XML_API_URL));
     }
 
     public function getVeePeeApiCredentials()

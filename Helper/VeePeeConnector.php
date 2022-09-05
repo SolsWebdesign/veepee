@@ -227,7 +227,6 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
             $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER , false);
             $this->getToken(false);
             $tokenBearer =  "Bearer " . $this->token;
-            //$this->devLog->info(print_r($tokenBearer, true));
             $operationsUrl = $this->veepeeApiUrl . '/api/v3/operations';
             $this->_curl->addHeader("Authorization", $tokenBearer);
             $this->_curl->get($operationsUrl);
@@ -251,7 +250,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                             if(isset($responseItem['status']) && strlen($responseItem['status']) > 0) {
                                 $operation->setStatus($responseItem['status']);
                             }
-                            if(isset($responseItem['modes']) && strlen($responseItem['modes']) > 0) {
+                            if(isset($responseItem['modes'])) {
                                 if (is_array($responseItem['modes']) && count($responseItem['modes']) > 0) {
                                     $modes = implode(',', $responseItem['modes']);
                                     $operation->setMode($modes);
@@ -318,7 +317,6 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
                 $this->getToken($returnIt = false);
                 $tokenBearer = "Bearer " . $this->token;
-                //$this->devLog->info(print_r($tokenBearer, true));
                 $batchesUrl = $this->veepeeApiUrl . '/api/v3/operations/' . $code . '/batches';
                 $this->_curl->addHeader("Authorization", $tokenBearer);
                 $this->_curl->get($batchesUrl);
@@ -388,20 +386,13 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                     }
                 }
-                return 'received ' . $batchesReceived . ' batches';
+                return 'Received / updated ' . $batchesReceived . ' batches';
             } else {
-                return 'code cannot be empty';
+                return 'Code cannot be empty';
             }
         } else {
             return 'module not enabled';
         }
-    }
-
-    public function getDeliveryOrders()
-    {
-        $batchId = 749576;
-        $result = $this->getDeliveryOrdersForBatch($batchId);
-        return $result;
     }
 
     public function getDeliveryOrdersForBatch($batchId, $deliveryOrderStatus = null)
@@ -427,7 +418,6 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                     $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
                     $this->getToken($returnIt = false);
                     $tokenBearer = "Bearer " . $this->token;
-                    //$this->devLog->info(print_r($tokenBearer, true));
                     $batchesUrl = $this->veepeeApiUrl . '/api/v3/operations/' . $code . '/batches/'.$batchId;
                     $this->_curl->addHeader("Authorization", $tokenBearer);
                     $this->_curl->get($batchesUrl);

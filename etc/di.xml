@@ -17,6 +17,8 @@
             <argument name="collections" xsi:type="array">
                 <item name="veepee_operations_grid_data_source" xsi:type="string">SolsWebdesign\VeePee\Model\ResourceModel\VeepeeOperations\Grid\Collection</item>
                 <item name="veepee_orders_grid_data_source" xsi:type="string">SolsWebdesign\VeePee\Model\ResourceModel\VeepeeDeliveryOrders\Grid\Collection</item>
+                <item name="veepee_batches_grid_data_source" xsi:type="string">SolsWebdesign\VeePee\Model\ResourceModel\VeepeeBatches\Grid\Collection</item>
+                <item name="veepee_products_grid_data_source" xsi:type="string">SolsWebdesign\VeePee\Model\ResourceModel\VeepeeDeliveryOrderItems\Grid\Collection</item>
             </argument>
         </arguments>
     </type>

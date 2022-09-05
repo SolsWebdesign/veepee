@@ -32,6 +32,9 @@
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id"/>
         </constraint>
+        <constraint xsi:type="unique" referenceId="VEEPEE_BATCH_ID">
+            <column name="batch_id"/>
+        </constraint>
     </table>
     <table name="veepee_delivery_orders" resource="default" engine="innodb" comment="VeePee Delivery Orders">
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
@@ -73,6 +76,9 @@
                 comment="Updated At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="VEEPEE_ID">
+            <column name="veepee_id"/>
         </constraint>
     </table>
     <table name="veepee_delivery_order_items" resource="default" engine="innodb" comment="VeePee Delivery Order Items">
