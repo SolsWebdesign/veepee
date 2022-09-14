@@ -60,6 +60,8 @@ class VeePeeOrderManager
     protected $veepeeDeliveryOrdersRepository;
     protected $veepeeDeliveryOrderItemsRepository;
     protected $deliveryOrdersCollectionFactory;
+    protected $paymentMethodVeepee;
+    protected $deliveryMethodVeepee;
     protected $dryRun = false; // use for testing cron without placing actual orders
     protected $msiEnabled = false;
     protected $devLog;
@@ -121,6 +123,8 @@ class VeePeeOrderManager
 
         if ($this->config->isEnabled()) {
             $this->veepeeApiUrl = $this->config->getVeePeeApiUrl();
+            $this->paymentMethodVeepee = $this->config->getPaymentMethodCode();
+            $this->deliveryMethodVeepee = $this->config->getDeliveryMethodCode();
         }
         if($this->moduleManager->isEnabled('Magento_Inventory')) {
             $this->msiEnabled = true;
@@ -175,7 +179,15 @@ class VeePeeOrderManager
 
     public function pushDeliveryOrder($veepeeOrderId)
     {
-        if (isset($veepeeOrderId) && strlen($veepeeOrderId) > 0 && $this->config->isEnabled()) {
+        if (isset($veepeeOrderId)
+            && strlen($veepeeOrderId) > 0
+            && $this->config->isEnabled()
+            && strlen($this->paymentMethodVeepee) > 0
+            && strlen($this->deliveryMethodVeepee) > 0)
+        {
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('PaymentMethod ' . $this->paymentMethodVeepee . ' deliveryMethod ' . $this->deliveryMethodVeepee, true));
+            }
             try {
                 $veepeeDeliveryOrder = $this->veepeeDeliveryOrdersRepository->getByVeepeeOrderId($veepeeOrderId);
             } catch (\Exception $exception) {
@@ -222,6 +234,12 @@ class VeePeeOrderManager
                                 }
                             } else {
                                 $result = $this->placeOrder($veepeeDeliveryOrder, $productIdsAndQtysNeeded);
+                                try {
+                                    $veepeeDeliveryOrder->setMagentoComment($result);
+                                    $veepeeDeliveryOrder->save();
+                                } catch (\Exception $exception) {
+                                    // just catch
+                                }
                                 return $result;
                             }
                             return 'We can place Delivery Order with veepee_order_id ' . $veepeeOrderId;
@@ -395,16 +413,15 @@ class VeePeeOrderManager
         $this->checkoutSession->setVeepeeEnabled(1);
         $this->checkoutSession->setVeepeeShipping(0); // can be a shipping price
 
-        // set shipping method todo create backend setting for this
         $shippingAddress = $quote->getShippingAddress();
         $shippingAddress->setCollectShippingRates(true)
             ->collectShippingRates()
-            ->setShippingMethod('flatrate_flatrate');
-        // set payment method todo create backend setting for this
-        $quote->setPaymentMethod('checkmo');
+            ->setShippingMethod(trim($this->deliveryMethodVeepee));
+
+        $quote->setPaymentMethod(trim($this->paymentMethodVeepee));
         $quote->setInventoryProcessed(false); // this reserves the items
         $quote->save(); // this is needed to avoid the error: Call to a member function getStoreId() on null in vendor/magento/module-quote/Model/Quote/Payment.php
-        $quote->getPayment()->importData(['method' => 'checkmo']);
+        $quote->getPayment()->importData(['method' => trim($this->paymentMethodVeepee)]);
         $totals = $quote->getTotals();
 
         $quote->setTotals($totals);
@@ -424,8 +441,9 @@ class VeePeeOrderManager
                 $this->devLog->info(print_r('Error could not save quote ' . $exception->getMessage(), true));
             }
             $this->logger->critical('ERROR could not save quote ' . $exception->getMessage());
+            $message = 'ERROR could not save quote ' . $exception->getMessage();
         }
-        if($saved) {
+         if($saved) {
             try {
                 $orderId = $this->quoteManagement->placeOrder($quote->getId());
                 $order = $this->orderRepository->get($orderId);
@@ -436,6 +454,7 @@ class VeePeeOrderManager
                     $this->devLog->info(print_r('Error could not create order ' . $exception->getMessage(), true));
                 }
                 $this->logger->critical('ERROR could not create order ' . $exception->getMessage());
+                $message = 'ERROR could not create order ' . $exception->getMessage();
             }
             if(isset($order) && $order->getId() > 0) {
                 if($this->config->getAutoInvoiceOrders() == true) {

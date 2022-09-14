@@ -18,6 +18,8 @@ class Config
     const XML_AUTO_PROCESS_ORDERS = 'veepee/various/auto_process_orders';
     const XML_AUTO_INVOICE_ORDERS = 'veepee/various/auto_invoice_orders';
     const XML_AUTO_PROCESS_ORDERS_MAX = 'veepee/various/auto_process_orders_max';
+    const XML_PAYMENT_METHOD_CODE = 'veepee/various/payment_method_code';
+    const XML_DELIVERY_METHOD_CODE = 'veepee/various/delivery_method_code';
     const XML_LOGGING_ENABLED = 'veepee/developer/enable_logging';
 
     const XML_STATUSES = [
@@ -111,5 +113,15 @@ class Config
     public function getAutoInvoiceOrders()
     {
         return $this->config->getValue(self::XML_AUTO_INVOICE_ORDERS);
+    }
+
+    public function getPaymentMethodCode()
+    {
+        return $this->config->getValue(self::XML_PAYMENT_METHOD_CODE);
+    }
+
+    public function getDeliveryMethodCode()
+    {
+        return $this->config->getValue(self::XML_DELIVERY_METHOD_CODE);
     }
 }

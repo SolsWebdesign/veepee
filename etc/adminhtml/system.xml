@@ -55,7 +55,17 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_collect_veepee_orders" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="payment_method_code" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Choose payment method for Veepee orders</label>
+                    <source_model>SolsWebdesign\VeePee\Model\Config\Source\PaymentMethods</source_model>
+                    <comment><![CDATA[Usually this is COD, Cash on Delivery (pin/contant bij ophalen).]]></comment>
+                </field>
+                <field id="delivery_method_code" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Choose shipping method for Veepee orders</label>
+                    <source_model>SolsWebdesign\VeePee\Model\Config\Source\DeliveryMethods</source_model>
+                    <comment><![CDATA[Usually this is pickup with date picker.]]></comment>
+                </field>
+                <field id="cron_collect_veepee_orders" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Cron to collect VeePee orders</label>
                     <comment>
                         <![CDATA[
@@ -64,7 +74,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_collect_veepee_campaigns" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_collect_veepee_campaigns" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Cron to collect VeePee Campaigns</label>
                     <comment>
                         <![CDATA[
@@ -73,7 +83,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_push_veepee_orders" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_push_veepee_orders" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Cron to push VeePee orders if products are available</label>
                     <comment>
                         <![CDATA[
