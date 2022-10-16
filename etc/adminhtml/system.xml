@@ -92,6 +92,15 @@
                         ]]>
                     </comment>
                 </field>
+                <field id="cron_create_parcels_and_tracking" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Cron to create parcels for VeePee orders and send tracking information</label>
+                    <comment>
+                        <![CDATA[
+                            8 * * * * means 8 minutes past every hour. Explanation: https://crontab.guru/ <br />
+                            <strong>Note: only orders that have been shipped are parceled and tracked.</strong>
+                        ]]>
+                    </comment>
+                </field>
             </group>
             <group id="developer" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Developer</label>
@@ -99,6 +108,51 @@
                     <label>Enable logging</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[If enabled, extra logging is added to the monthly veepee_connector_monthnumber.logs]]></comment>
+                </field>
+            </group>
+            <group id="custom_billing_address" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use custom billing address</label>
+                <field id="billing_address_enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Please note: when enabled, you have to fill in all required fields (street name, house number, postcode, city and country).]]></comment>
+                </field>
+                <field id="firstname" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>First name</label>
+                </field>
+                <field id="lastname" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Last name</label>
+                </field>
+                <field id="company" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Company</label>
+                </field>
+                <field id="telephone" translate="label" type="text" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Phone number</label>
+                    <comment><![CDATA[N.B. just numbers please. e.g. 012345678]]></comment>
+                </field>
+                <field id="street_name" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Street name</label>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="house_number" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Housenumber</label>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="house_number_addition" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>House number addition</label>
+                </field>
+                <field id="postcode" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Postcode</label>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="city" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>City</label>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="country" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Country</label>
+                    <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                    <can_be_empty>1</can_be_empty>
                 </field>
             </group>
         </section>

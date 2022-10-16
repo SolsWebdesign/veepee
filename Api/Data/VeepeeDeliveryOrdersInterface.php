@@ -415,6 +415,21 @@ interface VeepeeDeliveryOrdersInterface
     public function setLogisticCommitmentDate($logisticCommitmentDate);
 
     /**
+     * Get parcel id
+     *
+     * @return int|null
+     */
+    public function getParcelId();
+
+    /**
+     * Set parcel id
+     *
+     * @param int $parcelId
+     * @return $this
+     */
+    public function setParcelId($parcelId);
+
+    /**
      * Get updated at time
      *
      * @return string|null

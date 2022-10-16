@@ -15,6 +15,7 @@ use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\QuoteManagement;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\ShipmentRepositoryInterface;
 // product, customer and storemanager
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Model\Product;
@@ -36,6 +37,7 @@ use SolsWebdesign\VeePee\Model\Config;
 use SolsWebdesign\VeePee\Api\VeepeeDeliveryOrdersRepositoryInterface;
 use SolsWebdesign\VeePee\Api\VeepeeDeliveryOrderItemsRepositoryInterface;
 use SolsWebdesign\VeePee\Model\ResourceModel\VeepeeDeliveryOrders\CollectionFactory as DeliveryOrdersCollectionFactory;
+use SolsWebdesign\VeePee\Helper\VeePeeConnector;
 
 class VeePeeOrderManager
 {
@@ -44,6 +46,7 @@ class VeePeeOrderManager
     protected $quoteFactory;
     protected $quoteManagement;
     protected $orderRepository;
+    protected $shipmentRepository;
     protected $productModel;
     protected $productRepository;
     protected $getSalableQuantityDataBySku;
@@ -60,6 +63,7 @@ class VeePeeOrderManager
     protected $veepeeDeliveryOrdersRepository;
     protected $veepeeDeliveryOrderItemsRepository;
     protected $deliveryOrdersCollectionFactory;
+    protected $veePeeConnector;
     protected $paymentMethodVeepee;
     protected $deliveryMethodVeepee;
     protected $dryRun = false; // use for testing cron without placing actual orders
@@ -73,6 +77,7 @@ class VeePeeOrderManager
         QuoteFactory $quoteFactory,
         QuoteManagement $quoteManagement,
         OrderRepositoryInterface $orderRepository,
+        ShipmentRepositoryInterface  $shipmentRepository,
         StoreManagerInterface $storeManager,
         Product $productModel,
         ProductRepositoryInterface $productRepository,
@@ -86,6 +91,7 @@ class VeePeeOrderManager
         VeepeeDeliveryOrdersRepositoryInterface $veepeeDeliveryOrdersRepository,
         VeepeeDeliveryOrderItemsRepositoryInterface $veepeeDeliveryOrderItemsRepository,
         DeliveryOrdersCollectionFactory $deliveryOrdersCollectionFactory,
+        VeePeeConnector $veePeeConnector,
         LoggerInterface $logger,
         // Forza specific
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
@@ -95,6 +101,7 @@ class VeePeeOrderManager
         $this->veepeeDeliveryOrdersRepository = $veepeeDeliveryOrdersRepository;
         $this->veepeeDeliveryOrderItemsRepository = $veepeeDeliveryOrderItemsRepository;
         $this->deliveryOrdersCollectionFactory = $deliveryOrdersCollectionFactory;
+        $this->veePeeConnector = $veePeeConnector;
         $this->productRepository = $productRepository;
         $this->productModel = $productModel;
         //$this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
@@ -102,6 +109,7 @@ class VeePeeOrderManager
         $this->stockRegistry = $stockRegistry;
         $this->storeManager = $storeManager;
         $this->orderRepository = $orderRepository;
+        $this->shipmentRepository = $shipmentRepository;
         $this->checkoutSession = $checkoutSession;
         $this->quoteManagement = $quoteManagement;
         $this->quoteFactory = $quoteFactory;
@@ -391,7 +399,16 @@ class VeePeeOrderManager
         // add veepee customer as quest
         $quote = $this->assignCustomer($quote, $veepeeDeliveryOrder);
         // set billing and shipping Address
-        $quote->getBillingAddress()->addData($address);
+        if($this->config->isCustomBillingAddressEnabled()) {
+            $billingAddress = $this->getCustomBillingAddress();
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('Custom billing address: ', true));
+                $this->devLog->info(print_r($billingAddress, true));
+            }
+            $quote->getBillingAddress()->addData($billingAddress);
+        } else {
+            $quote->getBillingAddress()->addData($address);
+        }
         $quote->getShippingAddress()->addData($address);
         $quote->setInventoryProcessed(false);
         // fill with items
@@ -518,6 +535,114 @@ class VeePeeOrderManager
         $quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
 
         return $quote;
+    }
+
+    public function createAndParcel($veepeeOrder)
+    {
+        if ($this->devLogging) {
+            $this->devLog->info(print_r('createAndParcel for order with magento order id ' .$veepeeOrder->getMagentoOrderId(), true));
+        }
+        // we are only interested in the first shipment
+        $firstShipment = null;
+        $trackAndTraces = array();
+        // getting error
+        /*
+        {"":["Cannot deserialize the current JSON array (e.g. [1,2,3]) into type 'DropShipment.WebApi.Model.TrackingData'
+because the type requires a JSON object (e.g. {\"name\":\"value\"}) to deserialize correctly.\n
+To fix this error either change the JSON to a JSON object (e.g. {\"name\":\"value\"}) or change the deserialized type to an array
+or a type that implements a collection interface (e.g. ICollection, IList) like List<T> that can be deserialized from a JSON array.
+JsonArrayAttribute can also be added to the type to force it to deserialize from a JSON array.\nPath '', line 1, position 1."]} */
+        // so maybe they can only handle one t&t, so for now we just get the first t&t that is available
+        try {
+            $order = $this->orderRepository->get($veepeeOrder->getMagentoOrderId());
+            $shipmentCollection = $order->getShipmentsCollection();
+            foreach ($shipmentCollection as $shipment) {
+                if($shipment->getId() > 0) {
+                    $firstShipment = $shipment;
+                    break;
+                }
+            }
+        } catch (\Exception $exception) {
+            // just catch
+        }
+        if(isset($firstShipment)) {
+            $this->devLog->info(print_r('createAndParcel found a shipment', true));
+            $tracksCollection = $firstShipment->getTracksCollection();
+            foreach ($tracksCollection->getItems() as $track) {
+                $trackAndTraces = array('Carrier' => $track->getTitle(), 'ParcelTracker' => $track->getTrackNumber());
+                break; // see error above, so sticking to 1 t&t
+            }
+        }
+        if(count($trackAndTraces) > 0) {
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('Found track&traces for order with magento order id ' .$veepeeOrder->getMagentoOrderId(), true));
+            }
+            $shipped = [];
+            // good, we also need the products and their shipped qty's
+            // but we need to use veepee's own product ids!
+            foreach ($order->getAllVisibleItems() as $item){
+                $qtyShipped = $item->getQtyShipped();
+                if($qtyShipped > 0) {
+                    //$shipped[] = array('sku' => $item->getSku(), 'qty_shipped' => $item->getQtyShipped());
+                    try {
+                        $vpOrderItem = $this->veepeeDeliveryOrderItemsRepository->getByVeepeeOrderIdAndSku($veepeeOrder->getVeepeeOrderId(), $item->getSku());
+                        $vpProductId = $vpOrderItem->getProductId(); // in this way we make sure we use veepee's product id!!!
+                        $shipped[] = array('product_id' => $vpProductId, 'qty_shipped' => $item->getQtyShipped());
+                    } catch (\Exception $exception) {
+                        //
+                    }
+                }
+            }
+            $this->veePeeConnector->createParcelAndTracking($veepeeOrder, $shipped, $trackAndTraces);
+        }
+    }
+
+    public function getCustomBillingAddress()
+    {
+        $customBillingAddress = $this->config->getCustomBillingAddress();
+        /*
+            'firstname' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_FIRSTNAME)),
+            'lastname' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_LASTNAME)),
+            'company' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_COMPANY)),
+            'telephone' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_TELEPHONE)),
+            'street_name' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_STREET_NAME)),
+            'house_number' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_HOUSE_NUMBER)),
+            'house_number_addition' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_HOUSE_NUMBER_ADDITION)),
+            'postcode' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_POSTCODE)),
+            'city' => trim($this->config->getValue(self::XML_INVOICE_ADDRESS_CITY)),
+            'country' => $this->config->getValue(self::XML_INVOICE_ADDRESS_COUNTRY)
+         */
+        if(isset($customBillingAddress['firstname']) && strlen($customBillingAddress['firstname']) > 0) {
+            $firstname = $customBillingAddress['firstname'];
+        } else {
+            $firstname = '';
+        }
+        if(isset($customBillingAddress['lastname']) && strlen($customBillingAddress['lastname']) > 0) {
+            $lastname = $customBillingAddress['lastname'];
+        } else {
+            $lastname = 'Veepee';
+        }
+        if(isset($customBillingAddress['telephone']) && strlen($customBillingAddress['telephone']) > 0) {
+            $phone = $customBillingAddress['telephone'];
+        } else {
+            $phone = '0123456789';
+        }
+        $street = $customBillingAddress['street_name'].' '.$customBillingAddress['house_number'].' '.$customBillingAddress['house_number_addition'];
+        return array(
+            'firstname' => $firstname,
+            'lastname' => $lastname,
+            'company' => $customBillingAddress['company'],
+            'prefix' => '',
+            'suffix' => '',
+            'street' => $street,
+            'city' => $customBillingAddress['city'],
+            'country_id' => $customBillingAddress['country'],
+            'region' => '',
+            'postcode' => $customBillingAddress['postcode'],
+            'telephone' => $phone,
+            'fax' => '',
+            'save_in_address_book' => 0
+        );
     }
 
     public function getAddress($veepeeDeliveryOrder)

@@ -289,6 +289,16 @@ class VeepeeDeliveryOrders extends \Magento\Framework\DataObject implements Veep
         return $this->setData('logistic_commitment_date', $logisticCommitmentDate);
     }
 
+    public function getParcelId()
+    {
+        return $this->getData('parcel_id');
+    }
+
+    public function setParcelId($parcelId)
+    {
+        return $this->setData('parcel_id', $parcelId);
+    }
+
     public function getUpdatedAt()
     {
         return $this->getData('updated_at');

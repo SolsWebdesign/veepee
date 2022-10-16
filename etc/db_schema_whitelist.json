@@ -23,7 +23,8 @@
             "end_date": true
         },
         "constraint": {
-            "PRIMARY": true
+            "PRIMARY": true,
+            "VEEPEE_BATCHES_BATCH_ID": true
         }
     },
     "veepee_delivery_orders": {
@@ -54,10 +55,12 @@
             "floor": true,
             "state": true,
             "phone": true,
-            "email": true
+            "email": true,
+            "parcel_id": true
         },
         "constraint": {
-            "PRIMARY": true
+            "PRIMARY": true,
+            "VEEPEE_DELIVERY_ORDERS_VEEPEE_ID": true
         }
     },
     "veepee_delivery_order_items": {

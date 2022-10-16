@@ -72,6 +72,7 @@
                 comment="Creation date"/>
         <column xsi:type="timestamp" name="logistic_commitment_date" on_update="false" nullable="true"
                 comment="Logistic commitment date"/>
+        <column xsi:type="int" name="parcel_id" padding="32" unsigned="true" nullable="true" comment="Parcel ID"/>
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
                 comment="Updated At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">

@@ -63,4 +63,21 @@ class VeepeeDeliveryOrderItemsRepository implements VeepeeDeliveryOrderItemsRepo
             throw new \Magento\Framework\Exception\NoSuchEntityException(__('VeePee delivery order item with product id "%1" and veepee order id "%2" does not exist', $productId, $veepeeOrderId));
         }
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getByVeepeeOrderIdAndSku($veepeeOrderId, $sku)
+    {
+        $collection = $this->collectionFactory->create();
+        $collection->addFieldToFilter('veepee_order_id', array('eq' => $veepeeOrderId))
+            ->addFieldToFilter('supplier_reference', array('eq' => $sku));
+        $item = $collection->getFirstItem();
+        $itemId = $item->getId();
+        if (isset($itemId) && $itemId > 0) {
+            return $item;
+        } else {
+            throw new \Magento\Framework\Exception\NoSuchEntityException(__('VeePee delivery order item with product id "%1" and veepee order id "%2" does not exist', $productId, $veepeeOrderId));
+        }
+    }
 }

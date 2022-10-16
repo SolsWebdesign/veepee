@@ -21,6 +21,18 @@ class Config
     const XML_PAYMENT_METHOD_CODE = 'veepee/various/payment_method_code';
     const XML_DELIVERY_METHOD_CODE = 'veepee/various/delivery_method_code';
     const XML_LOGGING_ENABLED = 'veepee/developer/enable_logging';
+    // custom billing address
+    const XML_BILLING_ADDRESS_ENABLED = 'veepee/custom_billing_address/billing_address_enabled';
+    const XML_BILLING_ADDRESS_FIRSTNAME = 'veepee/custom_billing_address/firstname';
+    const XML_BILLING_ADDRESS_LASTNAME = 'veepee/custom_billing_address/lastname';
+    const XML_BILLING_ADDRESS_COMPANY = 'veepee/custom_billing_address/company';
+    const XML_BILLING_ADDRESS_TELEPHONE = 'veepee/custom_billing_address/telephone';
+    const XML_BILLING_ADDRESS_STREET_NAME = 'veepee/custom_billing_address/street_name';
+    const XML_BILLING_ADDRESS_HOUSE_NUMBER = 'veepee/custom_billing_address/house_number';
+    const XML_BILLING_ADDRESS_HOUSE_NUMBER_ADDITION = 'veepee/custom_billing_address/house_number_addition';
+    const XML_BILLING_ADDRESS_POSTCODE = 'veepee/custom_billing_address/postcode';
+    const XML_BILLING_ADDRESS_CITY = 'veepee/custom_billing_address/city';
+    const XML_BILLING_ADDRESS_COUNTRY = 'veepee/custom_billing_address/country';
 
     const XML_STATUSES = [
         0 => 'new',
@@ -59,6 +71,27 @@ class Config
     public function isLoggingEnabled()
     {
         return $this->config->getValue(self::XML_LOGGING_ENABLED);
+    }
+
+    public function isCustomBillingAddressEnabled()
+    {
+        return $this->config->getValue(self::XML_BILLING_ADDRESS_ENABLED);
+    }
+
+    public function getCustomBillingAddress()
+    {
+        return array(
+            'firstname' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_FIRSTNAME)),
+            'lastname' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_LASTNAME)),
+            'company' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_COMPANY)),
+            'telephone' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_TELEPHONE)),
+            'street_name' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_STREET_NAME)),
+            'house_number' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_HOUSE_NUMBER)),
+            'house_number_addition' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_HOUSE_NUMBER_ADDITION)),
+            'postcode' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_POSTCODE)),
+            'city' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_CITY)),
+            'country' => $this->config->getValue(self::XML_BILLING_ADDRESS_COUNTRY)
+        );
     }
 
     public function getXmlStatuses()

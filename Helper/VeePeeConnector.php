@@ -72,6 +72,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
 
         if($this->config->isEnabled()) {
             $this->veepeeApiUrl = $this->config->getVeePeeApiUrl();
+            $this->token = $this->getToken(true);
         }
 
         parent::__construct($context);
@@ -85,8 +86,8 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->devLog->info(print_r($accessInfo, true));
             }
             if(trim($username) == trim($accessInfo['username'])) {
-                $token = $this->getToken(true);
-                if(strlen($token) > 10) {
+                $this->token = $this->getToken(true);
+                if(strlen($this->token) > 10) {
                     return 'retrieved token, continue';
                 } else {
                     return 'error occurred, please check logs';
@@ -129,92 +130,93 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                 }
             }
-        }
-        if (!$tokenStillValid) {
-            if ($this->devLogging) {
-                $this->devLog->info(print_r('get a new token through API', true));
+            if (!$tokenStillValid) {
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('get a new token through API', true));
+                }
+                $this->token = $this->getTokenThroughApi();
             }
-            $this->token = $this->getTokenThroughApi();
         }
         if($returnIt) {
             return $this->token;
         }
     }
 
+    /**
+     * @return mixed|string|void
+     */
     public function getTokenThroughApi()
     {
-        if ($this->config->isEnabled()) {
-            if(isset($this->veepeeApiUrl) && strlen($this->veepeeApiUrl) > 5) {
-                $loginUrl = $this->veepeeApiUrl . '/api/v3/auth/login';
-                $accessInfo = $this->config->getVeePeeApiCredentials();
-                if ($this->devLogging) {
-                    $this->devLog->info(print_r('Veepee login URL ' . $loginUrl, true));
-                    //$this->devLog->info(print_r($accessInfo, true));
-                }
-                $authenticationData = array(
-                    'userName' => trim($accessInfo['username']),
-                    'password' => trim($accessInfo['password'])
-                );
-                // below does not work due to password containing slashes, trailing slashes, single quotes and double quotes
-                // demand a password without any slashes or quotes because this is not the way forward
-                $jsonEncoded = json_encode($authenticationData);
-                //$this->devLog->info(print_r($jsonEncoded, true));
-                $this->_curl->addHeader("Content-Type", "application/json-patch+json"); //x-www-form-urlencoded
+        if(isset($this->veepeeApiUrl) && strlen($this->veepeeApiUrl) > 5) {
+            $loginUrl = $this->veepeeApiUrl . '/api/v3/auth/login';
+            $accessInfo = $this->config->getVeePeeApiCredentials();
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('Veepee login URL ' . $loginUrl, true));
+                //$this->devLog->info(print_r($accessInfo, true));
+            }
+            $authenticationData = array(
+                'userName' => trim($accessInfo['username']),
+                'password' => trim($accessInfo['password'])
+            );
+            // below does not work due to password containing slashes, trailing slashes, single quotes and double quotes
+            // demand a password without any slashes or quotes because this is not the way forward
+            $jsonEncoded = json_encode($authenticationData);
+            //$this->devLog->info(print_r($jsonEncoded, true));
+            $this->_curl->addHeader("Content-Type", "application/json-patch+json"); //x-www-form-urlencoded
 
-                $this->_curl->setOption(CURLOPT_POST, 1);
-                $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-                $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-                $this->_curl->post($loginUrl,$jsonEncoded);
-                $response = $this->_curl->getBody();
+            $this->_curl->setOption(CURLOPT_POST, 1);
+            $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+            $this->_curl->post($loginUrl,$jsonEncoded);
+            $response = $this->_curl->getBody();
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('Veepee answer ', true));
+                $this->devLog->info(print_r($response, true));
+            }
+            // looks like {"access_token":"eyJhbGciOiJIUzI1Ni...4","expires_in":3600}
+            $response = json_decode($response, true);
+            if (isset($response['access_token']) && strlen($response['access_token']) && isset($response['expires_in']) && $response['expires_in'] > 0) {
+                $veepeeTokenModel = $this->veepeeTokenFactory->create()->load(1);
+                if ($veepeeTokenModel->getId() > 0) {
+                    if ($this->devLogging) {
+                        $length = strlen($response['access_token']);
+                        if($length > 1000) {
+                            $this->devLog->info(print_r('Error, will save token but it is too long (should not be longer then 1000 and length is  ' . $length.')', true));
+                        } else {
+                            $this->devLog->info(print_r('token length is  ' . $length, true));
+                        }
+                    }
+                    $veepeeTokenModel->setToken($response['access_token']);
+                    $veepeeTokenModel->setExpiresIn($response['expires_in']);
+                } else {
+                    $veepeeTokenModel = $this->veepeeTokenFactory->create();
+                    $veepeeTokenModel->setToken($response['access_token']);
+                    $veepeeTokenModel->setExpiresIn($response['expires_in']);
+                }
+                try {
+                    $veepeeTokenModel->save();
+                } catch (\Exception $e) {
+                    if ($this->devLogging) {
+                        $this->devLog->info(print_r('Error could not save token ' . $e->getMessage(), true));
+                    }
+                    $this->logger->critical('ERROR ' . $e->getMessage());
+                }
+                return $response['access_token'];
+            } else {
                 if ($this->devLogging) {
-                    $this->devLog->info(print_r('Veepee answer ', true));
+                    $this->devLog->info(print_r('Error (getTokenThroughApi) with connection to API:', true));
                     $this->devLog->info(print_r($response, true));
                 }
-                // looks like {"access_token":"eyJhbGciOiJIUzI1Ni...4","expires_in":3600}
-                $response = json_decode($response, true);
-                if (isset($response['access_token']) && strlen($response['access_token']) && isset($response['expires_in']) && $response['expires_in'] > 0) {
-                    $veepeeTokenModel = $this->veepeeTokenFactory->create()->load(1);
-                    if ($veepeeTokenModel->getId() > 0) {
-                        if ($this->devLogging) {
-                            $length = strlen($response['access_token']);
-                            if($length > 1000) {
-                                $this->devLog->info(print_r('Error, will save token but it is too long (should not be longer then 1000 and length is  ' . $length.')', true));
-                            } else {
-                                $this->devLog->info(print_r('token length is  ' . $length, true));
-                            }
-                        }
-                        $veepeeTokenModel->setToken($response['access_token']);
-                        $veepeeTokenModel->setExpiresIn($response['expires_in']);
-                    } else {
-                        $veepeeTokenModel = $this->veepeeTokenFactory->create();
-                        $veepeeTokenModel->setToken($response['access_token']);
-                        $veepeeTokenModel->setExpiresIn($response['expires_in']);
-                    }
-                    try {
-                        $veepeeTokenModel->save();
-                    } catch (\Exception $e) {
-                        if ($this->devLogging) {
-                            $this->devLog->info(print_r('Error could not save token ' . $e->getMessage(), true));
-                        }
-                        $this->logger->critical('ERROR ' . $e->getMessage());
-                    }
-                    return $response['access_token'];
-                } else {
-                    if ($this->devLogging) {
-                        $this->devLog->info(print_r('Error (getTokenThroughApi) with connection to API:', true));
-                        $this->devLog->info(print_r($response, true));
-                    }
-                    $this->logger->critical('ERROR veepee (getTokenThroughApi) with connection to API:');
-                    $this->logger->critical($response);
-                    return ''; // empty token
-                }
+                $this->logger->critical('ERROR veepee (getTokenThroughApi) with connection to API:');
+                $this->logger->critical($response);
+                return ''; // empty token
             }
-            // something went wrong
-            if ($this->devLogging) {
-                $this->devLog->info(print_r('Error (getTokenThroughApi) with connection to API.', true));
-            }
-            return ''; // empty token
         }
+        // something went wrong
+        if ($this->devLogging) {
+            $this->devLog->info(print_r('Error (getTokenThroughApi) with connection to API.', true));
+        }
+        return ''; // empty token
     }
 
     public function getOperations()
@@ -225,8 +227,12 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
             $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
             $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
             $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER , false);
-            $this->getToken(false);
+            //$this->getToken(false);
             $tokenBearer =  "Bearer " . $this->token;
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('show token bearer: ', true));
+                $this->devLog->info(print_r($tokenBearer, true));
+            }
             $operationsUrl = $this->veepeeApiUrl . '/api/v3/operations';
             $this->_curl->addHeader("Authorization", $tokenBearer);
             $this->_curl->get($operationsUrl);
@@ -769,6 +775,111 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                         }
                         $this->logger->critical('Error (getDeliveryOrdersForBatch) could not save order item ' . $exception->getMessage());
                     }
+                }
+            }
+        }
+    }
+
+    public function createParcel($veepeeOrder, $operationCode, $shipped)
+    {
+        if ($this->config->isEnabled()) {
+            if(isset($operationCode) && strlen($operationCode) > 0){
+                // shipped is the array of shipped products and looks like this: 'product_id' => $vpProductId, 'qty_shipped' => $item->getQtyShipped()
+                $productData = [];
+                foreach ($shipped as $shippedQty) {
+                    $productId = $shippedQty['product_id'];
+                    $productData[$productId] = (int)$shippedQty['qty_shipped'];
+                }
+                $jsonEncoded = json_encode($productData);
+
+                //$this->_curl->post($loginUrl,$jsonEncoded);
+                $this->_curl->setOption(CURLOPT_POST, 1);
+                $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER , false);
+                $this->getToken(false);
+                $tokenBearer =  "Bearer " . $this->token;
+                $parcelCreationUrl = $this->veepeeApiUrl . '/api/v3/parcels/operation/'.$operationCode.'/batch/'.$veepeeOrder->getBatchId().'/deliveryorder/'.$veepeeOrder->getVeepeeId();
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('parcelCreationUrl ' . $parcelCreationUrl, true));
+                }
+                $this->_curl->addHeader("Content-Type", "application/json-patch+json"); // maybe not needed
+                $this->_curl->addHeader("Authorization", $tokenBearer);
+                $this->_curl->post($parcelCreationUrl, $jsonEncoded);
+                $response = $this->_curl->getBody();
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('Veepee answer (get createParcel) ', true));
+                    $this->devLog->info(print_r($response, true));
+                }
+                return $response;
+            }
+        }
+    }
+
+    public function sendTrackingInfoVeepee($veepeeOrder, $parcelId, $operationCode, $trackAndTraces)
+    {
+        if ($this->devLogging) {
+            $this->devLog->info(print_r('sendTrackingInfoVeepee for magento id ' . $veepeeOrder->getMagentoOrderId(), true));
+        }
+        if ($this->config->isEnabled()) {
+            if(isset($operationCode) && strlen($operationCode) > 0){
+                $jsonEncoded = json_encode($trackAndTraces);
+                //$this->_curl->post($loginUrl,$jsonEncoded);
+                $this->_curl->setOption(CURLOPT_POST, 1);
+                $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER , false);
+                $this->getToken(false);
+                $tokenBearer =  "Bearer " . $this->token;
+                $sendTrackingUrl = $this->veepeeApiUrl . '/api/v3/parcels/operation/'.$operationCode.'/batch/'.$veepeeOrder->getBatchId().'/parcel/'.$parcelId.'/trackingdata';
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('sendTrackingUrl ' . $sendTrackingUrl, true));
+                }
+                $this->_curl->addHeader("Content-Type", "application/json-patch+json"); // maybe not needed
+                $this->_curl->addHeader("Authorization", $tokenBearer);
+                $this->_curl->post($sendTrackingUrl, $jsonEncoded);
+                $response = $this->_curl->getBody();
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('Veepee answer (sendTrackingInfoVeepee) ', true));
+                    $this->devLog->info(print_r($response, true));
+                }
+                return $response;
+            }
+        }
+    }
+
+    public function createParcelAndTracking($veepeeOrder, $shipped, $trackAndTraces)
+    {
+        if ($this->devLogging) {
+            $this->devLog->info(print_r('createParcelAndTracking starting for magento id ' . $veepeeOrder->getMagentoOrderId(), true));
+        }
+        try {
+            $batch = $this->veepeeBatchesRepository->getByBatchId($veepeeOrder->getBatchId());
+            $operationId = $batch->getOperationId();
+            $operation = $this->veepeeOperationsRepository->getById($operationId);
+            $operationCode = $operation->getCode();
+        } catch (\Exception $exception) {
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('Error (createParcel) could not retrieve operation code ' . $exception->getMessage(), true));
+            }
+            $this->logger->critical('Error (createParcel) could not retrieve operation code ' . $exception->getMessage());
+        }
+        if(isset($operationCode) && strlen($operationCode) > 0) {
+            $parcelId = $this->createParcel($veepeeOrder, $operationCode, $shipped);
+            // should look like 4784545 (max 32 length?)
+            if (isset($parcelId) && strlen($parcelId) > 0 && strlen($parcelId) < 34) {
+                try {
+                    $veepeeOrder->setParcelId((int)$parcelId)->save();
+                } catch (\Exception $exception) {
+                    if ($this->devLogging) {
+                        $this->devLog->info(print_r('Error (createParcelAndTracking) could not save parcel id ' . $exception->getMessage(), true));
+                    }
+                    $this->logger->critical('Error (createParcelAndTracking) could not save parcel id ' . $exception->getMessage());
+                }
+                $results = $this->sendTrackingInfoVeepee($veepeeOrder, $parcelId, $operationCode, $trackAndTraces);
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('createParcelAndTracking results t&t : ', true));
+                    $this->devLog->info(print_r($results, true));
                 }
             }
         }

@@ -27,4 +27,11 @@ interface VeepeeDeliveryOrderItemsRepositoryInterface
      * @return SolsWebdesign\VeePee\Api\Data\VeepeeDeliveryOrderItemsInterface
      */
     public function getByVeepeeOrderIdAndProductId($veepeeOrderId, $productId);
+
+    /**
+     * @param $veepeeOrderId
+     * @param $sku
+     * @return SolsWebdesign\VeePee\Api\Data\VeepeeDeliveryOrderItemsInterface
+     */
+    public function getByVeepeeOrderIdAndSku($veepeeOrderId, $sku);
 }

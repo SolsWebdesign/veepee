@@ -10,5 +10,8 @@
         <job name="veepee_push_veepee_orders" instance="SolsWebdesign\VeePee\Cron\PushVeePeeOrders" method="execute">
             <config_path>veepee/general/cron_push_veepee_orders</config_path>
         </job>
+        <job name="veepee_create_parcels_and_tracking" instance="SolsWebdesign\VeePee\Cron\CreateParcelsAndTracking" method="execute">
+            <config_path>veepee/general/cron_create_parcels_and_tracking</config_path>
+        </job>
     </group>
 </config>
