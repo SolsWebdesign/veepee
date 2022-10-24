@@ -37,7 +37,17 @@ class Push extends \Magento\Backend\App\Action
             if (isset($id) && $id > 0) {
                 $veepeeOrder = $this->veepeeOrdersFactory->create()->load($id);
                 $message = $this->veePeeOrderManager->pushDeliveryOrder($veepeeOrder->getVeepeeOrderId());
-                $this->messageManager->addSuccessMessage($message);
+                if(strlen($message) > 5) {
+                    $firstPart = substr($message, 0, 5);
+                    $firstPart = strtolower($firstPart);
+                    if($firstPart == 'error') {
+                        $this->messageManager->addErrorMessage($message);
+                    } else {
+                        $this->messageManager->addSuccessMessage($message);
+                    }
+                } else {
+                    $this->messageManager->addSuccessMessage($message);
+                }
             } else {
                 $this->messageManager->addErrorMessage(__('Could not retrieve entity_id'));
             }

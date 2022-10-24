@@ -286,6 +286,16 @@
                 </item>
             </argument>
         </field>
+        <field name="parcel_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string" translate="true">Parcel ID</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="dataScope" xsi:type="string">parcel_id</item>
+                </item>
+            </argument>
+        </field>
         <field name="creation_date">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

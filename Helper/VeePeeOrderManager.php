@@ -18,6 +18,8 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
 // product, customer and storemanager
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Model\AddressFactory;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 //use Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku; // looks like Forza does not have this
@@ -53,6 +55,8 @@ class VeePeeOrderManager
     protected $stockRegistry;
     protected $moduleManager;
     protected $storeManager;
+    protected $customerRepository;
+    protected $addressFactory;
     // protected $orderSender; // not (yet) needed
     protected $transaction;
     protected $invoiceService;
@@ -79,6 +83,8 @@ class VeePeeOrderManager
         OrderRepositoryInterface $orderRepository,
         ShipmentRepositoryInterface  $shipmentRepository,
         StoreManagerInterface $storeManager,
+        CustomerRepositoryInterface $customerRepository,
+        AddressFactory $addressFactory,
         Product $productModel,
         ProductRepositoryInterface $productRepository,
         //GetSalableQuantityDataBySku $getSalableQuantityDataBySku,
@@ -108,6 +114,8 @@ class VeePeeOrderManager
         $this->moduleManager = $moduleManager;
         $this->stockRegistry = $stockRegistry;
         $this->storeManager = $storeManager;
+        $this->customerRepository = $customerRepository;
+        $this->addressFactory = $addressFactory;
         $this->orderRepository = $orderRepository;
         $this->shipmentRepository = $shipmentRepository;
         $this->checkoutSession = $checkoutSession;
@@ -391,7 +399,7 @@ class VeePeeOrderManager
         // storeId cannot be 0 (admin store) because then payment won't work
         // and also you get a Magento\InventoryIndexer\Model\Queue\ReservationData error
         // so it must be 1 or higher (one of the stores, usually 1 will be the main store)
-        $address  = $this->getAddress($veepeeDeliveryOrder);
+        $address = $this->getAddress($veepeeDeliveryOrder);
         // create quote (cart)
         $quote = $this->quoteFactory->create();
         $quote->setStoreId($storeId);
@@ -399,7 +407,42 @@ class VeePeeOrderManager
         // add veepee customer as quest
         $quote = $this->assignCustomer($quote, $veepeeDeliveryOrder);
         // set billing and shipping Address
-        if($this->config->isCustomBillingAddressEnabled()) {
+        if($this->config->isUseCustomerForBillingEnabled() == true) {
+            $useCustomerForBillingInfo = $this->config->getUseCustomerForBillingInfo();
+            if(isset($useCustomerForBillingInfo['customer_id'])) {
+                $success = false;
+                try {
+                    $customer = $this->customerRepository->getById($useCustomerForBillingInfo['customer_id']);
+                    $success = true;
+                } catch (\Exception $exception) {
+                    // just catch
+                }
+                if($success && isset($customer)) {
+                    $billingAddressId = $customer->getDefaultBilling();
+                    $billingAddress = $this->addressFactory->create()->load($billingAddressId);
+
+                    $billingAddressArray =array(
+                        'firstname' => $billingAddress->getFirstname(),
+                        'lastname' => $billingAddress->getLastname(),
+                        'company' => $billingAddress->getCompany(),
+                        'prefix' => '',
+                        'suffix' => '',
+                        'street' => $billingAddress->getStreet(),
+                        'city' => $billingAddress->getCity(),
+                        'country_id' => $billingAddress->getCountryId(),
+                        'region' => $billingAddress->getRegionId(),
+                        'postcode' => $billingAddress->getPostcode(),
+                        'telephone' => $billingAddress->getTelephone(),
+                        'fax' => '',
+                        'save_in_address_book' => 0
+                    );
+
+                    $quote->getBillingAddress()->addData($billingAddressArray);
+                } else {
+                    $quote->getBillingAddress()->addData($address);
+                }
+            }
+        }elseif($this->config->isCustomBillingAddressEnabled() == true) {
             $billingAddress = $this->getCustomBillingAddress();
             if ($this->devLogging) {
                 $this->devLog->info(print_r('Custom billing address: ', true));
@@ -461,6 +504,7 @@ class VeePeeOrderManager
             $message = 'ERROR could not save quote ' . $exception->getMessage();
         }
          if($saved) {
+             $exceptionMessage = '';
             try {
                 $orderId = $this->quoteManagement->placeOrder($quote->getId());
                 $order = $this->orderRepository->get($orderId);
@@ -472,6 +516,7 @@ class VeePeeOrderManager
                 }
                 $this->logger->critical('ERROR could not create order ' . $exception->getMessage());
                 $message = 'ERROR could not create order ' . $exception->getMessage();
+                $exceptionMessage = $exception->getMessage();
             }
             if(isset($order) && $order->getId() > 0) {
                 if($this->config->getAutoInvoiceOrders() == true) {
@@ -497,7 +542,7 @@ class VeePeeOrderManager
                     $message = 'Successfully submitted order and retrieved order id ' . $order->getId();
                 }
             } else {
-                $message = 'Error: could not create order';
+                $message = 'Error: '.$exceptionMessage;
             }
         } else {
             $message = 'Error: could not save quote';
@@ -524,16 +569,65 @@ class VeePeeOrderManager
         } else {
             $email = $veepeeDeliveryOrder->getVeepeeOrderId().'@veepee.com';
         }
-        // we only have zipcode, city and country so we will create email and name
-        $email = $email;
-        $quote->setCustomerId(0);
-        $quote->setCustomerEmail($email);
-        $quote->setCustomerFirstname($firstname);
-        $quote->setCustomerLastname($lastname);
-        $quote->setCustomerIsGuest(1);
-        $quote->setCustomerGroupId(GroupInterface::NOT_LOGGED_IN_ID);
-        $quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
 
+        // use customer for billing is load customer by id
+        $useCustomerForBilling = $this->config->isUseCustomerForBillingEnabled();
+        if($useCustomerForBilling == true) {
+            $useCustomerForBillingInfo = $this->config->getUseCustomerForBillingInfo();
+            if(isset($useCustomerForBillingInfo['customer_id'])) {
+                $success = false;
+                try {
+                    $customer = $this->customerRepository->getById($useCustomerForBillingInfo['customer_id']);
+                    $success = true;
+                } catch (\Exception $exception) {
+                    // just catch
+                }
+                if($success && isset($customer)) {
+                    $customerGroupId = $customer->getGroupId();
+                    if(isset($useCustomerForBillingInfo['firstname']) && strlen($useCustomerForBillingInfo['firstname']) > 0) {
+                        $firstname = $useCustomerForBillingInfo['firstname'];
+                    } else {
+                        $firstname = $customer->getFirstname();
+                    }
+                    if(isset($useCustomerForBillingInfo['lastname']) && strlen($useCustomerForBillingInfo['lastname']) > 0) {
+                        $lastname = $useCustomerForBillingInfo['lastname'];
+                    } else {
+                        $lastname = $customer->getLastname();
+                    }
+                    $email = $customer->getEmail();
+                    if ($this->devLogging) {
+                        $this->devLog->info(print_r('assignCustomer useCustomerForBilling customer id '.$useCustomerForBillingInfo['customer_id'], true));
+                        $this->devLog->info(print_r('assignCustomer useCustomerForBilling firstname '.$firstname, true));
+                        $this->devLog->info(print_r('assignCustomer useCustomerForBilling lastname '.$lastname, true));
+                        $this->devLog->info(print_r('assignCustomer useCustomerForBilling email '.$email, true));
+                        $this->devLog->info(print_r('assignCustomer useCustomerForBilling customer group id '.$customerGroupId, true));
+                    }
+                    $quote->setCustomerId($useCustomerForBillingInfo['customer_id']); //$customer->getId());
+                    $quote->setCustomerEmail($email);
+                    $quote->setCustomerFirstname($firstname);
+                    $quote->setCustomerLastname($lastname);
+                    $quote->setCustomerIsGuest(0);
+                    $quote->setCustomerGroupId($customerGroupId);
+                    $quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
+                } else {
+                    $quote->setCustomerId(0);
+                    $quote->setCustomerEmail($email);
+                    $quote->setCustomerFirstname($firstname);
+                    $quote->setCustomerLastname($lastname);
+                    $quote->setCustomerIsGuest(1);
+                    $quote->setCustomerGroupId(GroupInterface::NOT_LOGGED_IN_ID);
+                    $quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
+                }
+            }
+        } else {
+            $quote->setCustomerId(0);
+            $quote->setCustomerEmail($email);
+            $quote->setCustomerFirstname($firstname);
+            $quote->setCustomerLastname($lastname);
+            $quote->setCustomerIsGuest(1);
+            $quote->setCustomerGroupId(GroupInterface::NOT_LOGGED_IN_ID);
+            $quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
+        }
         return $quote;
     }
 

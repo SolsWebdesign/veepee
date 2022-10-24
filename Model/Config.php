@@ -21,6 +21,11 @@ class Config
     const XML_PAYMENT_METHOD_CODE = 'veepee/various/payment_method_code';
     const XML_DELIVERY_METHOD_CODE = 'veepee/various/delivery_method_code';
     const XML_LOGGING_ENABLED = 'veepee/developer/enable_logging';
+    // use customer for billing
+    const XML_USE_CUSTOMER_BILLING_ENABLED = 'veepee/use_customer_for_billing/use_for_billing_enabled';
+    const XML_USE_CUSTOMER_BILLING_ID = 'veepee/use_customer_for_billing/customer_id';
+    const XML_USE_CUSTOMER_BILLING_FIRSTNAME = 'veepee/use_customer_for_billing/firstname';
+    const XML_USE_CUSTOMER_BILLING_LASTNAME = 'veepee/use_customer_for_billing/lastname';
     // custom billing address
     const XML_BILLING_ADDRESS_ENABLED = 'veepee/custom_billing_address/billing_address_enabled';
     const XML_BILLING_ADDRESS_FIRSTNAME = 'veepee/custom_billing_address/firstname';
@@ -71,6 +76,20 @@ class Config
     public function isLoggingEnabled()
     {
         return $this->config->getValue(self::XML_LOGGING_ENABLED);
+    }
+
+    public function isUseCustomerForBillingEnabled()
+    {
+        return $this->config->getValue(self::XML_USE_CUSTOMER_BILLING_ENABLED);
+    }
+
+    public function getUseCustomerForBillingInfo()
+    {
+        return array(
+            'customer_id' => trim($this->config->getValue(self::XML_USE_CUSTOMER_BILLING_ID)),
+            'firstname' => trim($this->config->getValue(self::XML_USE_CUSTOMER_BILLING_FIRSTNAME)),
+            'lastname' => trim($this->config->getValue(self::XML_USE_CUSTOMER_BILLING_LASTNAME))
+        );
     }
 
     public function isCustomBillingAddressEnabled()
