@@ -65,7 +65,7 @@
                     <source_model>SolsWebdesign\VeePee\Model\Config\Source\DeliveryMethods</source_model>
                     <comment><![CDATA[Usually this is pickup with date picker.]]></comment>
                 </field>
-                <field id="cron_collect_veepee_orders" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_collect_veepee_orders" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Cron to collect VeePee orders</label>
                     <comment>
                         <![CDATA[
@@ -74,7 +74,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_collect_veepee_campaigns" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_collect_veepee_campaigns" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Cron to collect VeePee Campaigns</label>
                     <comment>
                         <![CDATA[
@@ -83,7 +83,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_push_veepee_orders" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_push_veepee_orders" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Cron to push VeePee orders if products are available</label>
                     <comment>
                         <![CDATA[
@@ -92,7 +92,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_create_parcels_and_tracking" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_create_parcels_and_tracking" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Cron to create parcels for VeePee orders and send tracking information</label>
                     <comment>
                         <![CDATA[

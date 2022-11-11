@@ -2,7 +2,7 @@
   "name": "solswebdesign/veepee",
   "description": "VeePee M2 Connection",
   "type": "magento2-module",
-  "version": "v1.0.6",
+  "version": "v1.0.7",
   "authors" : [
     {
       "name": "Isolde van Oosterhout",

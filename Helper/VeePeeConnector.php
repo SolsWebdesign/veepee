@@ -496,8 +496,8 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                                             if ($this->devLogging) {
                                                 $this->devLog->info(print_r('Veepee shipping address '.count($responseItem['shippingAddress']), true));
                                                 if(count($responseItem['shippingAddress']) > 3) {
-                                                    $this->devLog->info(print_r('Veepee shipping address with more then 3 items!', true));
-                                                    $this->devLog->info(print_r($responseItem['shippingAddress'], true));
+                                                    //$this->devLog->info(print_r('Veepee shipping address with more then 3 items!', true));
+                                                    //$this->devLog->info(print_r($responseItem['shippingAddress'], true));
                                                 }
                                             }
                                             if(isset($responseItem['shippingAddress']['country']) && strlen($responseItem['shippingAddress']['country']) > 0) {
@@ -727,7 +727,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                     try {
                         $vpOrderItem->save();
                         if ($this->devLogging) {
-                            $this->devLog->info(print_r('updated this veepee order item ', true));
+                            //$this->devLog->info(print_r('updated this veepee order item ', true));
                         }
                     } catch (\Exception $exception) {
                         if ($this->devLogging) {
@@ -816,6 +816,15 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
         }
     }
 
+    /**
+     *  sendTrackingInfoVeepee
+     *      // uses v3
+     *
+     * @param $veepeeOrder
+     * @param $parcelId
+     * @param $operationCode
+     * @param $trackAndTraces
+     */
     public function sendTrackingInfoVeepee($veepeeOrder, $parcelId, $operationCode, $trackAndTraces)
     {
         if ($this->devLogging) {
@@ -841,6 +850,67 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 $response = $this->_curl->getBody();
                 if ($this->devLogging) {
                     $this->devLog->info(print_r('Veepee answer (sendTrackingInfoVeepee) ', true));
+                    $this->devLog->info(print_r($response, true));
+                }
+                return $response;
+            }
+        }
+    }
+
+    /**
+     *  anounceShipmentVeepee
+     *      // uses v2!!!!
+     *
+     * @param $veepeeOrder
+     * @param $parcelId
+     * @param $operationCode
+     * @param $trackAndTraces
+     */
+    public function anounceShipmentVeepee($veepeeOrder, $parcelId, $operationCode)
+    {
+        if ($this->devLogging) {
+            $this->devLog->info(print_r('anounceShipmentVeepee for magento id ' . $veepeeOrder->getMagentoOrderId(), true));
+        }
+        if ($this->config->isEnabled()) {
+            if(isset($operationCode) && strlen($operationCode) > 0){
+                //$this->_curl->post($loginUrl,$jsonEncoded);
+                $jsonEncoded = json_encode([]);
+                // step 1
+                $this->_curl->setOption(CURLOPT_POST, 1);
+                $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER , false);
+                $this->getToken(false);
+                $tokenBearer =  "Bearer " . $this->token;
+                $anounceShipmentUrl = $this->veepeeApiUrl . '/api/v2/parcels/operation/'.$operationCode.'/batch/'.$veepeeOrder->getBatchId().'/parcel/'.$parcelId.'/readytoship';
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('anounceShipmentUrl ' . $anounceShipmentUrl, true));
+                }
+                $this->_curl->addHeader("Content-Type", "application/json-patch+json"); // maybe not needed
+                $this->_curl->addHeader("Authorization", $tokenBearer);
+                $this->_curl->post($anounceShipmentUrl, $jsonEncoded);
+                $response = $this->_curl->getBody();
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('Veepee answer (anounceShipmentVeepee) ', true));
+                    $this->devLog->info(print_r($response, true));
+                }
+                // step 2
+                $this->_curl->setOption(CURLOPT_POST, 1);
+                $this->_curl->setOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+                $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER , false);
+                $this->getToken(false);
+                $tokenBearer =  "Bearer " . $this->token;
+                $shipmentUrl = $this->veepeeApiUrl . '/api/v2/parcels/operation/'.$operationCode.'/batch/'.$veepeeOrder->getBatchId().'/parcel/'.$parcelId.'/ship';
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('shipmentUrl ' . $shipmentUrl, true));
+                }
+                $this->_curl->addHeader("Content-Type", "application/json-patch+json"); // maybe not needed
+                $this->_curl->addHeader("Authorization", $tokenBearer);
+                $this->_curl->post($shipmentUrl, $jsonEncoded);
+                $response = $this->_curl->getBody();
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('Veepee answer (shipmentVeepee) ', true));
                     $this->devLog->info(print_r($response, true));
                 }
                 return $response;
@@ -880,6 +950,11 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 if ($this->devLogging) {
                     $this->devLog->info(print_r('createParcelAndTracking results t&t : ', true));
                     $this->devLog->info(print_r($results, true));
+                }
+                $results2 = $this->anounceShipmentVeepee($veepeeOrder, $parcelId, $operationCode);
+                if ($this->devLogging) {
+                    $this->devLog->info(print_r('createParcelAndTracking results2 announceShipmentVeepee : ', true));
+                    $this->devLog->info(print_r($results2, true));
                 }
             }
         }

@@ -445,8 +445,8 @@ class VeePeeOrderManager
         }elseif($this->config->isCustomBillingAddressEnabled() == true) {
             $billingAddress = $this->getCustomBillingAddress();
             if ($this->devLogging) {
-                $this->devLog->info(print_r('Custom billing address: ', true));
-                $this->devLog->info(print_r($billingAddress, true));
+                //$this->devLog->info(print_r('Custom billing address: ', true));
+                //$this->devLog->info(print_r($billingAddress, true));
             }
             $quote->getBillingAddress()->addData($billingAddress);
         } else {
