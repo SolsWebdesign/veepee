@@ -7,38 +7,49 @@
  */
 namespace SolsWebdesign\VeePee\Controller\Adminhtml\Vpitem;
 
+use SolsWebdesign\VeePee\Helper\VeePeeOrderManager;
+
 class Cancel extends \Magento\Backend\App\Action
 {
     protected $resultPageFactory;
+    protected $veePeeOrderManager;
 
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory
+        \Magento\Framework\View\Result\PageFactory $resultPageFactory,
+        VeePeeOrderManager $veePeeOrderManager
     ) {
         $this->resultPageFactory = $resultPageFactory;
+        $this->veePeeOrderManager = $veePeeOrderManager;
         parent::__construct($context);
     }
 
     public function execute()
     {
-        //todo this is a copy of edit, we need to implement cancel here
-
         if(!$this->_isAllowed()) {
             $this->messageManager->addErrorMessage('Not authorized');
             return false;
+        }  elseif ($id = $this->getRequest()->getParam('id')) {
+            if (isset($id) && $id > 0) {
+                $message = $this->veePeeOrderManager->cancelDeliveryOrder($id);
+                if(strlen($message) > 5) {
+                    $firstPart = substr($message, 0, 5);
+                    $firstPart = strtolower($firstPart);
+                    if($firstPart == 'error') {
+                        $this->messageManager->addErrorMessage($message);
+                    } else {
+                        $this->messageManager->addSuccessMessage($message);
+                    }
+                } else {
+                    $this->messageManager->addSuccessMessage($message);
+                }
+            } else {
+                $this->messageManager->addErrorMessage(__('Could not retrieve entity_id'));
+            }
         } else {
-            $resultPage = $this->resultPageFactory->create();
-            $this->initPage($resultPage)->getConfig()->getTitle()->prepend(__('VeePee Order - Edit'));
-            return $resultPage;
+            $this->messageManager->addErrorMessage(__('Could not retrieve veepee_order_id'));
         }
-    }
-
-    protected function initPage($resultPage)
-    {
-        $resultPage->setActiveMenu('SolsWebdesign_VeePee::orders')
-            ->addBreadcrumb(__('Manage VeePee Orders'), __('Edit VeePee Orders'));
-
-        return $resultPage;
+        return $this->resultRedirectFactory->create()->setPath('veepee/orders/index');
     }
 
     protected function _isAllowed()

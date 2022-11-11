@@ -57,14 +57,6 @@ class Push extends \Magento\Backend\App\Action
         return $this->resultRedirectFactory->create()->setPath('veepee/orders/index');
     }
 
-    protected function initPage($resultPage)
-    {
-        $resultPage->setActiveMenu('SolsWebdesign_VeePee::orders')
-            ->addBreadcrumb(__('Manage VeePee Orders'), __('Edit VeePee Orders'));
-
-        return $resultPage;
-    }
-
     protected function _isAllowed()
     {
         return $this->_authorization->isAllowed('SolsWebdesign_VeePee::orders');

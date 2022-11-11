@@ -114,19 +114,20 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 $updatedAtTime = strtotime($updatedAt);
                 $lastExpires = $updatedAtTime + $expiresIn;
                 if ($this->devLogging) {
-                    $this->devLog->info(print_r('getAuthToken token ' . $token, true));
-                    $this->devLog->info(print_r('getAuthToken updatedAt ' . $updatedAt, true));
-                    $this->devLog->info(print_r('getAuthToken expiresIn ' . $expiresIn, true));
-                    $this->devLog->info(print_r('getAuthToken now ' . $now, true));
-                    $this->devLog->info(print_r('getAuthToken updatedAtTime ' . $updatedAtTime, true));
-                    $this->devLog->info(print_r('getAuthToken lastExpires ' . $lastExpires, true));
+                    //$this->devLog->info(print_r('getAuthToken token ' . $token, true));
+                    //$this->devLog->info(print_r('getAuthToken updatedAt ' . $updatedAt, true));
+                    //$this->devLog->info(print_r('getAuthToken expiresIn ' . $expiresIn, true));
+                    //$this->devLog->info(print_r('getAuthToken now ' . $now, true));
+                    //$this->devLog->info(print_r('getAuthToken updatedAtTime ' . $updatedAtTime, true));
+                    //$this->devLog->info(print_r('getAuthToken lastExpires ' . $lastExpires, true));
                 }
                 if ($lastExpires > $now) {
                     // cool, use current token
                     $this->token = $token;
                     $tokenStillValid = true;
                     if ($this->devLogging) {
-                        $this->devLog->info(print_r('we will use the current token ' . $token, true));
+                        //$this->devLog->info(print_r('we will use the current token ' . $token, true));
+                        $this->devLog->info(print_r('we will use the current token', true));
                     }
                 }
             }

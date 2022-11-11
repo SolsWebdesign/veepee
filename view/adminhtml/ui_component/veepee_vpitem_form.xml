@@ -106,6 +106,18 @@
                 </item>
             </argument>
         </field>
+        <field name="status">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="class" xsi:type="string">SolsWebdesign\VeePee\Ui\Component\Form\Element\VpOrderStatus</item>
+                    <item name="label" xsi:type="string" translate="true">VeePee Status</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="dataScope" xsi:type="string">status</item>
+                    <item name="disabled" xsi:type="boolean">true</item>
+                </item>
+            </argument>
+        </field>
         <field name="magento_order_id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -113,6 +125,19 @@
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="formElement" xsi:type="string">input</item>
                     <item name="dataScope" xsi:type="string">magento_order_id</item>
+                    <item name="disabled" xsi:type="boolean">true</item>
+                </item>
+            </argument>
+        </field>
+        <field name="order_increment_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="class" xsi:type="string">SolsWebdesign\VeePee\Ui\Component\Form\Element\OrderIncrementId</item>
+                    <item name="label" xsi:type="string" translate="true">Order incr. id</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="dataScope" xsi:type="string">order_increment_id</item>
+                    <item name="disabled" xsi:type="boolean">true</item>
                 </item>
             </argument>
         </field>
@@ -293,6 +318,22 @@
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="formElement" xsi:type="string">input</item>
                     <item name="dataScope" xsi:type="string">parcel_id</item>
+                </item>
+            </argument>
+        </field>
+        <field name="canceled">
+            <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">Magento\Config\Model\Config\Source\Yesno</item>
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">canceled</item>
+                    <item name="label" xsi:type="string" translate="true">Canceled</item>
+                    <item name="formElement" xsi:type="string">select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="notice" xsi:type="string" translate="true">
+                        Please note when canceling a veepee order: you can only cancel it for Magento if the VeePee status is "Available", "Canceled", "Stockout" or "Unknown" and
+                        if the order does not yet have a Magento order id.
+                        Canceling a veepee order does not mean that stockout is done. It only means that Magento will not process the order (anymore).
+                    </item>
                 </item>
             </argument>
         </field>

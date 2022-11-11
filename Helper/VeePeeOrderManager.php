@@ -39,6 +39,7 @@ use SolsWebdesign\VeePee\Model\Config;
 use SolsWebdesign\VeePee\Api\VeepeeDeliveryOrdersRepositoryInterface;
 use SolsWebdesign\VeePee\Api\VeepeeDeliveryOrderItemsRepositoryInterface;
 use SolsWebdesign\VeePee\Model\ResourceModel\VeepeeDeliveryOrders\CollectionFactory as DeliveryOrdersCollectionFactory;
+use SolsWebdesign\VeePee\Model\VeepeeDeliveryOrdersFactory;
 use SolsWebdesign\VeePee\Helper\VeePeeConnector;
 
 class VeePeeOrderManager
@@ -67,6 +68,7 @@ class VeePeeOrderManager
     protected $veepeeDeliveryOrdersRepository;
     protected $veepeeDeliveryOrderItemsRepository;
     protected $deliveryOrdersCollectionFactory;
+    protected $veepeeOrdersFactory;
     protected $veePeeConnector;
     protected $paymentMethodVeepee;
     protected $deliveryMethodVeepee;
@@ -97,6 +99,7 @@ class VeePeeOrderManager
         VeepeeDeliveryOrdersRepositoryInterface $veepeeDeliveryOrdersRepository,
         VeepeeDeliveryOrderItemsRepositoryInterface $veepeeDeliveryOrderItemsRepository,
         DeliveryOrdersCollectionFactory $deliveryOrdersCollectionFactory,
+        VeepeeDeliveryOrdersFactory $veepeeOrdersFactory,
         VeePeeConnector $veePeeConnector,
         LoggerInterface $logger,
         // Forza specific
@@ -107,6 +110,7 @@ class VeePeeOrderManager
         $this->veepeeDeliveryOrdersRepository = $veepeeDeliveryOrdersRepository;
         $this->veepeeDeliveryOrderItemsRepository = $veepeeDeliveryOrderItemsRepository;
         $this->deliveryOrdersCollectionFactory = $deliveryOrdersCollectionFactory;
+        $this->veepeeOrdersFactory = $veepeeOrdersFactory;
         $this->veePeeConnector = $veePeeConnector;
         $this->productRepository = $productRepository;
         $this->productModel = $productModel;
@@ -145,11 +149,11 @@ class VeePeeOrderManager
         if($this->moduleManager->isEnabled('Magento_Inventory')) {
             $this->msiEnabled = true;
             if($this->devLogging) {
-                $this->devLog->info(print_r('msi is enabled', true));
+                //$this->devLog->info(print_r('msi is enabled', true));
             }
         } else {
             if($this->devLogging) {
-                $this->devLog->info(print_r('msi is disabled', true));
+                //$this->devLog->info(print_r('msi is disabled', true));
             }
         }
     }
@@ -173,8 +177,9 @@ class VeePeeOrderManager
                 $this->devLog->info(print_r('pushDeliveryOrders (cron). '.$maxSet.' '.$canAutoInvoice, true));
             }
             $collection = $this->deliveryOrdersCollectionFactory->create();
-            $collection->addFieldToFilter('status', array('eq' => 0)); // available
-            $collection->addFieldToFilter('magento_order_id', array('eq' => 0)); // no magento order yet
+            $collection->addFieldToFilter('status', array('eq' => 0)) // available
+                ->addFieldToFilter('magento_order_id', array('eq' => 0)) // no magento order yet
+                ->addFieldToFilter('canceled', array('eq' => 0)); // not canceled
             if(isset($max) && $max > 0) {
                 $collection->setPageSize($max); //->setCurPage($offset)
             }
@@ -214,6 +219,11 @@ class VeePeeOrderManager
                 $statusId = $veepeeDeliveryOrder->getStatus();
                 $status = $this->config->getXmlOrderStatus($statusId);
                 $magentoOrderId = $veepeeDeliveryOrder->getMagentoOrderId();
+                // do not push orders that have been canceled by the user!
+                $canceled = $veepeeDeliveryOrder->getCanceled();
+                if($canceled == 1) {
+                    return 'Error, delivery order with veepee_order_id ' . $veepeeOrderId . ' was canceled for magento and cannot be pushed.';
+                }
                 // only push orders that are available and have no magento order id!
                 if ($status == 'Available' && $magentoOrderId == 0) {
                     if ($this->devLogging) {
@@ -224,7 +234,7 @@ class VeePeeOrderManager
                     if (is_array($deliveryOrderItems) && count($deliveryOrderItems) > 0) {
                         $results = $this->walkThroughVeepeeDeliveryOrderItems($deliveryOrderItems);
                         if(!$results['can_place']) {
-                            $magentoComment = 'Cannot place Order:' .$results['magento_comment'];
+                            $magentoComment = 'Error: cannot place Order:' .$results['magento_comment'];
                             try {
                                 $veepeeDeliveryOrder->setMagentoComment($magentoComment);
                                 $veepeeDeliveryOrder->save();
@@ -261,13 +271,13 @@ class VeePeeOrderManager
                             return 'We can place Delivery Order with veepee_order_id ' . $veepeeOrderId;
                         }
                     } else {
-                        return 'No items found for Delivery Order with veepee_order_id ' . $veepeeOrderId;
+                        return 'Error: No items found for Delivery Order with veepee_order_id ' . $veepeeOrderId;
                     }
                 } else {
-                    return 'Delivery Order with veepee_order_id ' . $veepeeOrderId . ' already has status ' . $status;
+                    return 'Error: Delivery Order with veepee_order_id ' . $veepeeOrderId . ' already has status ' . $status;
                 }
             } else {
-                return 'Delivery Order with veepee_order_id ' . $veepeeOrderId . ' not found.';
+                return 'Error: Delivery Order with veepee_order_id ' . $veepeeOrderId . ' not found.';
             }
         }
     }
@@ -817,6 +827,26 @@ JsonArrayAttribute can also be added to the type to force it to deserialize from
             // $this->sendInvoice($invoice, $order);
         }
         return $success;
+    }
+
+    public function cancelDeliveryOrder($id)
+    {
+        $veepeeOrder = $this->veepeeOrdersFactory->create()->load($id);
+        // we cannot cancel the order if:
+        // 1. the order has any other status then Available (0) / Canceled (9) / Unknown (10) /Stockout (8)
+        // 2. the order already has a magento order id
+        $veepeeOrderStatus = $veepeeOrder->getStatus();
+        $allowedStatusses = [0,9,10,8];
+        if (!in_array($veepeeOrderStatus, $allowedStatusses)) {
+            $statusName = $this->config->getXmlOrderStatus($veepeeOrderStatus);
+            return 'Error cannot cancel order for Magento, order already has Veepee status '.$statusName;
+        }
+        $magentoOrderId = $veepeeOrder->getMagentoOrderId();
+        if(isset($magentoOrderId) && $magentoOrderId > 0)  {
+            return 'Error cannot cancel this order anymore, it already has a Magento Order (order id '.$magentoOrderId.')';
+        }
+        $veepeeOrder->setMagentoComment('Canceled for Magento')->setCanceled(1)->save();
+        return 'Order has been canceled, it will not be processed anymore by Magento. Please note, canceling the order here does not mean stockout.';
     }
 
     public function sendInvoice($invoice, $order)

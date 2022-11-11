@@ -39,15 +39,6 @@ class Config
     const XML_BILLING_ADDRESS_CITY = 'veepee/custom_billing_address/city';
     const XML_BILLING_ADDRESS_COUNTRY = 'veepee/custom_billing_address/country';
 
-    const XML_STATUSES = [
-        0 => 'new',
-        1 => 'processed',
-        2 => 'no_stock',
-        3 => 'complete',
-        9 => 'canceled',
-        10 => 'error'
-    ];
-
     const XML_ORDER_STATUSES = [
         0 => 'Available',
         1 => 'Parcelled',
@@ -111,19 +102,6 @@ class Config
             'city' => trim($this->config->getValue(self::XML_BILLING_ADDRESS_CITY)),
             'country' => $this->config->getValue(self::XML_BILLING_ADDRESS_COUNTRY)
         );
-    }
-
-    public function getXmlStatuses()
-    {
-        return self::XML_STATUSES;
-    }
-
-    public function getXmlStatus($id)
-    {
-        if(isset(self::XML_STATUSES[$id])) {
-            return self::XML_STATUSES[$id];
-        }
-        return false;
     }
 
     public function getXmlOrderStatuses()

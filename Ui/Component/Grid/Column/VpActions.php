@@ -68,8 +68,8 @@ class VpActions extends Column
                         'href' => $this->urlBuilder->getUrl(self::VP_URL_PATH_CANCEL, ['id' => $item['entity_id']]),
                         'label' => __('Cancel'),
                         'confirm' => [
-                            'title' => __('Cancel %1', $item['entity_id']),
-                            'message' => __('Are you sure you want to cancel this %1 veepee order?', $item['entity_id'])
+                            'title' => __('Cancel order', $item['entity_id']),
+                            'message' => __('Are you sure you want to cancel this veepee order with id %1? Note: this cancels the order for Magento.', $item['entity_id'])
                         ]
                     ];
                 }

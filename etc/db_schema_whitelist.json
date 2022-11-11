@@ -56,7 +56,8 @@
             "state": true,
             "phone": true,
             "email": true,
-            "parcel_id": true
+            "parcel_id": true,
+            "canceled": true
         },
         "constraint": {
             "PRIMARY": true,

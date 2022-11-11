@@ -68,6 +68,8 @@
                 default="0" comment="Status"/>
         <column xsi:type="smallint" name="is_mono_ref" padding="2" unsigned="true" nullable="true" identity="false"
                 default="0" comment="Is mono ref"/>
+        <column xsi:type="smallint" name="canceled" padding="2" unsigned="true" nullable="true" identity="false"
+                default="0" comment="Canceled"/>
         <column xsi:type="timestamp" name="creation_date" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
                 comment="Creation date"/>
         <column xsi:type="timestamp" name="logistic_commitment_date" on_update="false" nullable="true"
