@@ -15,6 +15,7 @@ class Config
     const XML_API_URL = 'veepee/general/veepee_api_url';
     const XML_API_USERNAME = 'veepee/general/username';
     const XML_API_PASSWORD = 'veepee/general/password';
+    const XML_USE_STORE_ID = 'veepee/various/veepee_store_id';
     const XML_AUTO_PROCESS_ORDERS = 'veepee/various/auto_process_orders';
     const XML_AUTO_INVOICE_ORDERS = 'veepee/various/auto_invoice_orders';
     const XML_AUTO_PROCESS_ORDERS_MAX = 'veepee/various/auto_process_orders_max';
@@ -128,6 +129,11 @@ class Config
             'username' => $this->config->getValue(self::XML_API_USERNAME),
             'password' => $this->config->getValue(self::XML_API_PASSWORD)
         );
+    }
+
+    public function getStoreIdToUse()
+    {
+        return $this->config->getValue(self::XML_USE_STORE_ID);
     }
 
     public function getAutoProcessOrders()

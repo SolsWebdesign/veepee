@@ -218,6 +218,7 @@ class VeePeeOrderManager
                 // see what the status is
                 $statusId = $veepeeDeliveryOrder->getStatus();
                 $status = $this->config->getXmlOrderStatus($statusId);
+                $veepeeStoreIdToUse = $this->config->getStoreIdToUse();
                 $magentoOrderId = $veepeeDeliveryOrder->getMagentoOrderId();
                 // do not push orders that have been canceled by the user!
                 $canceled = $veepeeDeliveryOrder->getCanceled();
@@ -259,7 +260,7 @@ class VeePeeOrderManager
                                     $this->logger->critical('ERROR could not save veepee delivery order ' . $exception->getMessage());
                                 }
                             } else {
-                                $result = $this->placeOrder($veepeeDeliveryOrder, $productIdsAndQtysNeeded);
+                                $result = $this->placeOrder($veepeeDeliveryOrder, $productIdsAndQtysNeeded, $veepeeStoreIdToUse);
                                 try {
                                     $veepeeDeliveryOrder->setMagentoComment($result);
                                     $veepeeDeliveryOrder->save();

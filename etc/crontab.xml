@@ -2,16 +2,16 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/cron_groups.xsd">
     <group id="default">
         <job name="veepee_collect_veepee_orders" instance="SolsWebdesign\VeePee\Cron\CollectVeePeeOrders" method="execute">
-            <config_path>veepee/general/cron_collect_veepee_orders</config_path>
+            <config_path>veepee/various/cron_collect_veepee_orders</config_path>
         </job>
         <job name="veepee_collect_campaigns" instance="SolsWebdesign\VeePee\Cron\CollectVeePeeCampaigns" method="execute">
-            <config_path>veepee/general/cron_collect_veepee_campaigns</config_path>
+            <config_path>veepee/various/cron_collect_veepee_campaigns</config_path>
         </job>
         <job name="veepee_push_veepee_orders" instance="SolsWebdesign\VeePee\Cron\PushVeePeeOrders" method="execute">
-            <config_path>veepee/general/cron_push_veepee_orders</config_path>
+            <config_path>veepee/various/cron_push_veepee_orders</config_path>
         </job>
         <job name="veepee_create_parcels_and_tracking" instance="SolsWebdesign\VeePee\Cron\CreateParcelsAndTracking" method="execute">
-            <config_path>veepee/general/cron_create_parcels_and_tracking</config_path>
+            <config_path>veepee/various/cron_create_parcels_and_tracking</config_path>
         </job>
     </group>
 </config>

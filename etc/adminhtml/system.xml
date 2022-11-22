@@ -28,6 +28,11 @@
             </group>
             <group id="various" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Various settings</label>
+                <field id="veepee_store_id" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Choose store for order processing</label>
+                    <source_model>SolsWebdesign\VeePee\Model\Config\Source\StoresToUse</source_model>
+                    <comment><![CDATA[Choose the store where the orders will be placed.]]></comment>
+                </field>
                 <field id="auto_process_orders" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Auto process VeePee orders</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
