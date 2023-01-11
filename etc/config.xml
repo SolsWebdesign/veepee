@@ -4,8 +4,13 @@
         <veepee>
             <general>
                 <enabled>0</enabled>
-                <cron_collect_veepee_orders>0 0 0 0 0</cron_collect_veepee_orders>
             </general>
+            <various>
+                <cron_collect_veepee_orders>5 6,9,15 * * *</cron_collect_veepee_orders>
+                <cron_collect_veepee_campaigns>2 6 * * *</cron_collect_veepee_campaigns>
+                <cron_push_veepee_orders>*/5 * * * *</cron_push_veepee_orders>
+                <cron_create_parcels_and_tracking>8 * * * * </cron_create_parcels_and_tracking>
+            </various>
             <developer>
                 <logging_enabled>0</logging_enabled>
             </developer>

@@ -26,14 +26,14 @@
                     <comment><![CDATA[Password should not contain slashes, trailing slashes, quotes or double quotes.]]></comment>
                 </field>
             </group>
-            <group id="various" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+            <group id="various" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Various settings</label>
-                <field id="veepee_store_id" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="veepee_store_id" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Choose store for order processing</label>
                     <source_model>SolsWebdesign\VeePee\Model\Config\Source\StoresToUse</source_model>
                     <comment><![CDATA[Choose the store where the orders will be placed.]]></comment>
                 </field>
-                <field id="auto_process_orders" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="auto_process_orders" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Auto process VeePee orders</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>
@@ -42,7 +42,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="auto_process_orders_max" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="auto_process_orders_max" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Max number of VeePee orders to process per cron run</label>
                     <validate>validate-number maximum-length-5</validate>
                     <comment>
@@ -51,7 +51,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="auto_invoice_orders" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="auto_invoice_orders" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Auto invoice VeePee orders</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>
@@ -60,17 +60,17 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="payment_method_code" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="payment_method_code" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Choose payment method for Veepee orders</label>
                     <source_model>SolsWebdesign\VeePee\Model\Config\Source\PaymentMethods</source_model>
                     <comment><![CDATA[Usually this is COD, Cash on Delivery (pin/contant bij ophalen).]]></comment>
                 </field>
-                <field id="delivery_method_code" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="delivery_method_code" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Choose shipping method for Veepee orders</label>
                     <source_model>SolsWebdesign\VeePee\Model\Config\Source\DeliveryMethods</source_model>
                     <comment><![CDATA[Usually this is pickup with date picker.]]></comment>
                 </field>
-                <field id="cron_collect_veepee_orders" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_collect_veepee_orders" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Cron to collect VeePee orders</label>
                     <comment>
                         <![CDATA[
@@ -79,7 +79,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_collect_veepee_campaigns" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_collect_veepee_campaigns" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Cron to collect VeePee Campaigns</label>
                     <comment>
                         <![CDATA[
@@ -88,7 +88,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_push_veepee_orders" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_push_veepee_orders" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Cron to push VeePee orders if products are available</label>
                     <comment>
                         <![CDATA[
@@ -97,7 +97,7 @@
                         ]]>
                     </comment>
                 </field>
-                <field id="cron_create_parcels_and_tracking" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="cron_create_parcels_and_tracking" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Cron to create parcels for VeePee orders and send tracking information</label>
                     <comment>
                         <![CDATA[

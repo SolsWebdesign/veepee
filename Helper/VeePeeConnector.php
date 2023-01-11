@@ -247,6 +247,7 @@ class VeePeeConnector extends \Magento\Framework\App\Helper\AbstractHelper
                 foreach ($response as $responseItem) {
                     if(isset($responseItem['code']) && strlen($responseItem['code']) > 0) {
                         $operationsReceived++;
+                        $operation = null; // just to make sure
                         try {
                             $operation = $this->veepeeOperationsRepository->getByCode($responseItem['code']);
                         } catch (\Exception $exception) {

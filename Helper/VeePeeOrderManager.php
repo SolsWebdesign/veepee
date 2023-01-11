@@ -671,7 +671,9 @@ JsonArrayAttribute can also be added to the type to force it to deserialize from
             // just catch
         }
         if(isset($firstShipment)) {
-            $this->devLog->info(print_r('createAndParcel found a shipment', true));
+            if ($this->devLogging) {
+                $this->devLog->info(print_r('createAndParcel found a shipment', true));
+            }
             $tracksCollection = $firstShipment->getTracksCollection();
             foreach ($tracksCollection->getItems() as $track) {
                 $trackAndTraces = array('Carrier' => $track->getTitle(), 'ParcelTracker' => $track->getTrackNumber());
